@@ -1,4 +1,4 @@
-import { Component, signal, computed } from '@angular/core';
+import { Component, computed, effect, signal } from '@angular/core';
 import { CdkDragDrop, DragDropModule, moveItemInArray } from '@angular/cdk/drag-drop';
 import { FormsModule } from '@angular/forms';
 import {
@@ -19,13 +19,21 @@ import { INITIAL_FRAGRANCES } from './fragrance.data';
   styleUrl: './app.scss',
 })
 export class App {
-  public items = signal<Fragrance[]>(structuredClone(INITIAL_FRAGRANCES));
+  private readonly storageKey = 'fragrance-app.items.v1';
+
+  public items = signal<Fragrance[]>(this.loadItems());
   public searchQuery = signal('');
   public newName = signal('');
   public showImportModal = signal(false);
   public importText = signal('');
   public importPreview = signal<Fragrance[]>([]);
   public copied = signal(false);
+
+  constructor() {
+    effect(() => {
+      this.saveItems(this.items());
+    });
+  }
 
   public stats = computed(() => {
     const all = this.items();
@@ -39,7 +47,7 @@ export class App {
   public filteredItems = computed(() => {
     const q = this.searchQuery().toLowerCase();
     const all = this.items();
-    if (!q) return all.map((item, index) => ({ item, index }));
+    if (!q) { return all.map((item, index) => ({ item, index })); }
     return all
       .map((item, index) => ({ item, index }))
       .filter(({ item }) => item.name.toLowerCase().includes(q));
@@ -60,9 +68,7 @@ export class App {
 
   public toggleStatus(realIndex: number) {
     this.items.update((items) =>
-      items.map((it, i) =>
-        i === realIndex ? { ...it, status: nextStatus(it.status) } : it
-      )
+      items.map((it, i) => (i === realIndex ? { ...it, status: nextStatus(it.status) } : it)),
     );
   }
 
@@ -71,7 +77,7 @@ export class App {
   }
 
   public moveUp(realIndex: number) {
-    if (realIndex <= 0) return;
+    if (realIndex <= 0) { return; }
     const current = [...this.items()];
     [current[realIndex - 1], current[realIndex]] = [current[realIndex], current[realIndex - 1]];
     this.items.set(current);
@@ -79,7 +85,7 @@ export class App {
 
   public moveDown(realIndex: number) {
     const current = [...this.items()];
-    if (realIndex >= current.length - 1) return;
+    if (realIndex >= current.length - 1) { return; }
     [current[realIndex], current[realIndex + 1]] = [current[realIndex + 1], current[realIndex]];
     this.items.set(current);
   }
@@ -90,13 +96,13 @@ export class App {
 
   public addItem() {
     const name = this.newName().trim();
-    if (!name) return;
+    if (!name) { return; }
     this.items.update((items) => [...items, { name, status: null }]);
     this.newName.set('');
   }
 
   public addOnEnter(event: KeyboardEvent) {
-    if (event.key === 'Enter') this.addItem();
+    if (event.key === 'Enter') { this.addItem(); }
   }
 
   public copyToClipboard() {
@@ -127,5 +133,47 @@ export class App {
       this.items.set(parsed);
     }
     this.showImportModal.set(false);
+  }
+
+  private loadItems(): Fragrance[] {
+    if (typeof window === 'undefined') { return structuredClone(INITIAL_FRAGRANCES); }
+
+    try {
+      const raw = window.localStorage.getItem(this.storageKey);
+      if (!raw) { return structuredClone(INITIAL_FRAGRANCES); }
+
+      const parsed: unknown = JSON.parse(raw);
+      if (!Array.isArray(parsed)) { return structuredClone(INITIAL_FRAGRANCES); }
+
+      const items = parsed
+        .filter(
+          (item): item is { name: unknown; status: unknown } =>
+            item !== null && typeof item === 'object',
+        )
+        .map((item) => ({
+          name: String(item.name ?? '').trim(),
+          status: this.normalizeStatus(item.status),
+        }))
+        .filter((item) => item.name.length > 0);
+
+      return items.length > 0 ? items : structuredClone(INITIAL_FRAGRANCES);
+    } catch {
+      return structuredClone(INITIAL_FRAGRANCES);
+    }
+  }
+
+  private saveItems(items: Fragrance[]): void {
+    if (typeof window === 'undefined') { return; }
+
+    try {
+      window.localStorage.setItem(this.storageKey, JSON.stringify(items));
+    } catch {
+      // Ignore quota/security errors and keep app functional.
+    }
+  }
+
+  private normalizeStatus(status: unknown): FragranceStatus {
+    if (status === 'enjoy' || status === 'dislike' || status === null) { return status; }
+    return null;
   }
 }
