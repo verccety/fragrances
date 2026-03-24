@@ -24,6 +24,8 @@ export class App {
   public items = signal<Fragrance[]>(this.loadItems());
   public searchQuery = signal('');
   public newName = signal('');
+  public editingIndex = signal<number | null>(null);
+  public editingName = signal('');
   public showImportModal = signal(false);
   public importText = signal('');
   public importPreview = signal<Fragrance[]>([]);
@@ -56,8 +58,10 @@ export class App {
   public formatted = computed(() => formatList(this.items()));
 
   public isSearchActive = computed(() => this.searchQuery().length > 0);
+  public isRenaming = computed(() => this.editingIndex() !== null);
 
   public onDrop(event: CdkDragDrop<Fragrance[]>) {
+    if (this.isRenaming()) { return; }
     const current = [...this.items()];
     const filtered = this.filteredItems();
     const realPrevIndex = filtered[event.previousIndex].index;
@@ -77,6 +81,7 @@ export class App {
   }
 
   public moveUp(realIndex: number) {
+    if (this.isRenaming()) { return; }
     if (realIndex <= 0) { return; }
     const current = [...this.items()];
     [current[realIndex - 1], current[realIndex]] = [current[realIndex], current[realIndex - 1]];
@@ -84,6 +89,7 @@ export class App {
   }
 
   public moveDown(realIndex: number) {
+    if (this.isRenaming()) { return; }
     const current = [...this.items()];
     if (realIndex >= current.length - 1) { return; }
     [current[realIndex], current[realIndex + 1]] = [current[realIndex + 1], current[realIndex]];
@@ -91,6 +97,7 @@ export class App {
   }
 
   public removeItem(realIndex: number) {
+    if (this.isRenaming()) { return; }
     this.items.update((items) => items.filter((_, i) => i !== realIndex));
   }
 
@@ -105,6 +112,48 @@ export class App {
     if (event.key === 'Enter') { this.addItem(); }
   }
 
+  public isEditing(realIndex: number): boolean {
+    return this.editingIndex() === realIndex;
+  }
+
+  public startRename(realIndex: number) {
+    const item = this.items()[realIndex];
+    if (!item || this.isRenaming()) { return; }
+
+    this.editingIndex.set(realIndex);
+    this.editingName.set(item.name);
+  }
+
+  public saveRename(realIndex: number) {
+    if (!this.isEditing(realIndex)) { return; }
+
+    const name = this.editingName().trim();
+    if (!name) { return; }
+
+    this.items.update((items) =>
+      items.map((item, index) => (index === realIndex ? { ...item, name } : item)),
+    );
+    this.cancelRename();
+  }
+
+  public cancelRename() {
+    this.editingIndex.set(null);
+    this.editingName.set('');
+  }
+
+  public handleRenameKeydown(event: KeyboardEvent, realIndex: number) {
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      this.saveRename(realIndex);
+      return;
+    }
+
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      this.cancelRename();
+    }
+  }
+
   public copyToClipboard() {
     navigator.clipboard.writeText(this.formatted()).then(() => {
       this.copied.set(true);
@@ -113,6 +162,7 @@ export class App {
   }
 
   public openImport() {
+    this.cancelRename();
     this.importText.set('');
     this.importPreview.set([]);
     this.showImportModal.set(true);
@@ -130,6 +180,7 @@ export class App {
   public confirmImport() {
     const parsed = this.importPreview();
     if (parsed.length > 0) {
+      this.cancelRename();
       this.items.set(parsed);
     }
     this.showImportModal.set(false);

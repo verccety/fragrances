@@ -50,7 +50,25 @@
         <div class="frag-row">
           <span class="frag-row__handle">⠿</span>
           <span class="frag-row__rank">{{ entry.index + 1 }}</span>
-          <span class="frag-row__name">{{ entry.item.name }}</span>
+          @if (isEditing(entry.index)) {
+            <input
+              class="frag-row__input"
+              type="text"
+              placeholder="Rename fragrance..."
+              [value]="editingName()"
+              (input)="editingName.set($any($event.target).value)"
+              (keydown)="handleRenameKeydown($event, entry.index)"
+              autofocus
+            />
+          } @else {
+            <span
+              class="frag-row__name"
+              title="Double-click to rename"
+              (dblclick)="startRename(entry.index)"
+            >
+              {{ entry.item.name }}
+            </span>
+          }
           <button
             class="frag-row__status"
             [class.frag-row__status--empty]="!entry.item.status"
@@ -60,10 +78,52 @@
             {{ entry.item.status ? getStatusIcon(entry.item.status) : '○' }}
           </button>
           <div class="frag-row__arrows">
-            <button class="frag-row__arrow" (click)="moveUp(entry.index)" title="Move up">▲</button>
-            <button class="frag-row__arrow" (click)="moveDown(entry.index)" title="Move down">▼</button>
+            <button
+              class="frag-row__arrow"
+              [disabled]="isRenaming()"
+              (click)="moveUp(entry.index)"
+              title="Move up"
+            >
+              ▲
+            </button>
+            <button
+              class="frag-row__arrow"
+              [disabled]="isRenaming()"
+              (click)="moveDown(entry.index)"
+              title="Move down"
+            >
+              ▼
+            </button>
           </div>
-          <button class="frag-row__delete" (click)="removeItem(entry.index)" title="Remove">✕</button>
+          @if (isEditing(entry.index)) {
+            <div class="frag-row__edit-actions">
+              <button
+                class="frag-row__action frag-row__action--save"
+                [disabled]="editingName().trim().length === 0"
+                (click)="saveRename(entry.index)"
+              >
+                Save
+              </button>
+              <button class="frag-row__action" (click)="cancelRename()">Cancel</button>
+            </div>
+          } @else {
+            <button
+              class="frag-row__edit"
+              [disabled]="isRenaming()"
+              (click)="startRename(entry.index)"
+              title="Rename"
+            >
+              ✎
+            </button>
+            <button
+              class="frag-row__delete"
+              [disabled]="isRenaming()"
+              (click)="removeItem(entry.index)"
+              title="Remove"
+            >
+              ✕
+            </button>
+          }
         </div>
       }
     } @else {
@@ -74,13 +134,36 @@
         class="drop-zone"
       >
         @for (entry of filteredItems(); track entry.index) {
-          <div cdkDrag class="frag-row" [cdkDragData]="entry">
+          <div
+            cdkDrag
+            class="frag-row"
+            [cdkDragData]="entry"
+            [cdkDragDisabled]="isRenaming()"
+          >
             <!-- Drag preview placeholder -->
             <div class="frag-row__placeholder" *cdkDragPlaceholder></div>
 
             <span class="frag-row__handle" cdkDragHandle>⠿</span>
             <span class="frag-row__rank">{{ entry.index + 1 }}</span>
-            <span class="frag-row__name">{{ entry.item.name }}</span>
+            @if (isEditing(entry.index)) {
+              <input
+                class="frag-row__input"
+                type="text"
+                placeholder="Rename fragrance..."
+                [value]="editingName()"
+                (input)="editingName.set($any($event.target).value)"
+                (keydown)="handleRenameKeydown($event, entry.index)"
+                autofocus
+              />
+            } @else {
+              <span
+                class="frag-row__name"
+                title="Double-click to rename"
+                (dblclick)="startRename(entry.index)"
+              >
+                {{ entry.item.name }}
+              </span>
+            }
             <button
               class="frag-row__status"
               [class.frag-row__status--empty]="!entry.item.status"
@@ -90,10 +173,52 @@
               {{ entry.item.status ? getStatusIcon(entry.item.status) : '○' }}
             </button>
             <div class="frag-row__arrows">
-              <button class="frag-row__arrow" (click)="moveUp(entry.index)" title="Move up">▲</button>
-              <button class="frag-row__arrow" (click)="moveDown(entry.index)" title="Move down">▼</button>
+              <button
+                class="frag-row__arrow"
+                [disabled]="isRenaming()"
+                (click)="moveUp(entry.index)"
+                title="Move up"
+              >
+                ▲
+              </button>
+              <button
+                class="frag-row__arrow"
+                [disabled]="isRenaming()"
+                (click)="moveDown(entry.index)"
+                title="Move down"
+              >
+                ▼
+              </button>
             </div>
-            <button class="frag-row__delete" (click)="removeItem(entry.index)" title="Remove">✕</button>
+            @if (isEditing(entry.index)) {
+              <div class="frag-row__edit-actions">
+                <button
+                  class="frag-row__action frag-row__action--save"
+                  [disabled]="editingName().trim().length === 0"
+                  (click)="saveRename(entry.index)"
+                >
+                  Save
+                </button>
+                <button class="frag-row__action" (click)="cancelRename()">Cancel</button>
+              </div>
+            } @else {
+              <button
+                class="frag-row__edit"
+                [disabled]="isRenaming()"
+                (click)="startRename(entry.index)"
+                title="Rename"
+              >
+                ✎
+              </button>
+              <button
+                class="frag-row__delete"
+                [disabled]="isRenaming()"
+                (click)="removeItem(entry.index)"
+                title="Remove"
+              >
+                ✕
+              </button>
+            }
           </div>
         }
       </div>

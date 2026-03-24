@@ -217,6 +217,15 @@ $danger-hover: rgba(220, 100, 100, 0.7);
     border-color: rgba($gold, 0.1);
   }
 
+  &.cdk-drag-disabled {
+    cursor: default;
+
+    .frag-row__handle {
+      cursor: default;
+      color: rgba($gold, 0.12);
+    }
+  }
+
   &__placeholder {
     background: rgba($gold, 0.08);
     border: 1px dashed rgba($gold, 0.3);
@@ -244,14 +253,38 @@ $danger-hover: rgba(220, 100, 100, 0.7);
     padding-right: 12px;
   }
 
-  &__name {
+  &__name,
+  &__input {
     flex: 1;
+    min-width: 0;
     font-family: 'DM Sans', sans-serif;
     font-size: 0.82rem;
+    line-height: 1.35;
+  }
+
+  &__name {
     font-weight: 400;
     color: $text-dim;
     padding: 10px 4px;
-    line-height: 1.35;
+  }
+
+  &__input {
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba($gold, 0.22);
+    border-radius: 6px;
+    color: $text;
+    margin: 6px 4px;
+    padding: 8px 10px;
+    outline: none;
+
+    &:focus {
+      border-color: rgba($gold, 0.45);
+      background: rgba(255, 255, 255, 0.06);
+    }
+
+    &::placeholder {
+      color: rgba($gold, 0.24);
+    }
   }
 
   &__status {
@@ -301,19 +334,83 @@ $danger-hover: rgba(220, 100, 100, 0.7);
     &:hover {
       color: rgba($gold, 0.7);
     }
+
+    &:disabled {
+      color: rgba($gold, 0.12);
+      cursor: not-allowed;
+    }
+  }
+
+  &__edit-actions {
+    display: flex;
+    gap: 6px;
+    padding: 0 8px 0 4px;
+  }
+
+  &__action,
+  &__edit,
+  &__delete {
+    background: none;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  &__action {
+    border: 1px solid rgba($gold, 0.18);
+    border-radius: 4px;
+    color: rgba($gold, 0.75);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.66rem;
+    letter-spacing: 0.08em;
+    padding: 6px 8px;
+    text-transform: uppercase;
+
+    &:hover {
+      background: rgba($gold, 0.08);
+      border-color: rgba($gold, 0.28);
+    }
+
+    &:disabled {
+      opacity: 0.35;
+      cursor: not-allowed;
+    }
+  }
+
+  &__action--save {
+    color: rgba($gold, 0.92);
+    border-color: rgba($gold, 0.32);
+  }
+
+  &__edit,
+  &__delete {
+    border: none;
+    padding: 8px 10px;
+    font-size: 0.72rem;
+  }
+
+  &__edit {
+    color: rgba($gold, 0.3);
+
+    &:hover {
+      color: rgba($gold, 0.82);
+    }
+
+    &:disabled {
+      color: rgba($gold, 0.12);
+      cursor: not-allowed;
+    }
   }
 
   &__delete {
-    background: none;
-    border: none;
     color: $danger;
-    cursor: pointer;
-    padding: 8px 10px;
-    font-size: 0.7rem;
-    transition: color 0.15s;
 
     &:hover {
       color: $danger-hover;
+    }
+
+    &:disabled {
+      color: rgba($danger, 0.45);
+      cursor: not-allowed;
     }
   }
 }
