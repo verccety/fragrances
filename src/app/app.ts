@@ -4,6 +4,10 @@ import { FormsModule } from '@angular/forms';
 import {
   Fragrance,
   FragranceStatus,
+  GrandmaStatus,
+  grandmaStatusIcon,
+  grandmaStatusLabel,
+  nextGrandmaStatus,
   nextStatus,
   statusIcon,
   formatList,
@@ -76,8 +80,26 @@ export class App {
     );
   }
 
+  public toggleGrandmaStatus(realIndex: number): void {
+    this.items.update((items) =>
+      items.map((item, index) =>
+        index === realIndex
+          ? { ...item, grandmaStatus: nextGrandmaStatus(item.grandmaStatus) }
+          : item,
+      ),
+    );
+  }
+
   public getStatusIcon(status: FragranceStatus): string {
     return statusIcon(status);
+  }
+
+  public getGrandmaStatusIcon(status: GrandmaStatus): string {
+    return grandmaStatusIcon(status);
+  }
+
+  public getGrandmaStatusLabel(status: GrandmaStatus): string {
+    return grandmaStatusLabel(status);
   }
 
   public moveUp(realIndex: number) {
@@ -104,7 +126,10 @@ export class App {
   public addItem() {
     const name = this.newName().trim();
     if (!name) { return; }
-    this.items.update((items) => [...items, { name, status: null }]);
+    this.items.update((items) => [
+      ...items,
+      { name, status: null, grandmaStatus: 'unknown' },
+    ]);
     this.newName.set('');
   }
 
@@ -198,12 +223,13 @@ export class App {
 
       const items = parsed
         .filter(
-          (item): item is { name: unknown; status: unknown } =>
+          (item): item is { name: unknown; status: unknown; grandmaStatus?: unknown } =>
             item !== null && typeof item === 'object',
         )
         .map((item) => ({
           name: String(item.name ?? '').trim(),
           status: this.normalizeStatus(item.status),
+          grandmaStatus: this.normalizeGrandmaStatus(item.grandmaStatus),
         }))
         .filter((item) => item.name.length > 0);
 
@@ -226,5 +252,16 @@ export class App {
   private normalizeStatus(status: unknown): FragranceStatus {
     if (status === 'enjoy' || status === 'dislike' || status === null) { return status; }
     return null;
+  }
+
+  private normalizeGrandmaStatus(status: unknown): GrandmaStatus {
+    if (
+      status === 'disliked' ||
+      status === 'liked' ||
+      status === 'indifferent'
+    ) {
+      return status;
+    }
+    return 'unknown';
   }
 }

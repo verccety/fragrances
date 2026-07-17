@@ -185,6 +185,9 @@ $danger-hover: rgba(220, 100, 100, 0.7);
   max-width: 760px;
   margin: 0 auto;
   padding: 6px 24px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
   font-family: 'DM Sans', sans-serif;
   font-size: 0.68rem;
   color: rgba($gold, 0.35);
@@ -195,6 +198,39 @@ $danger-hover: rgba(220, 100, 100, 0.7);
   max-width: 760px;
   margin: 0 auto;
   padding: 0 24px 30px;
+}
+
+.list-header {
+  display: flex;
+  align-items: center;
+  padding: 0 0 7px 58px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.58rem;
+  letter-spacing: 0.08em;
+  color: rgba($gold, 0.35);
+  text-align: center;
+  text-transform: uppercase;
+
+  &__name {
+    flex: 1;
+    text-align: left;
+  }
+
+  &__personal {
+    width: 42px;
+    padding-right: 4px;
+    white-space: nowrap;
+  }
+
+  &__grandma {
+    width: 112px;
+    line-height: 1.25;
+    padding-left: 8px;
+  }
+
+  &__actions {
+    width: 84px;
+  }
 }
 
 .drop-zone {
@@ -310,6 +346,31 @@ $danger-hover: rgba(220, 100, 100, 0.7);
     &--empty {
       color: rgba($gold, 0.2);
       font-size: 0.6rem;
+    }
+  }
+
+  &__grandma-status {
+    width: 108px;
+    min-width: 108px;
+    height: 34px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 6px;
+    background: none;
+    border: 1px solid rgba($gold, 0.1);
+    border-radius: 4px;
+    color: $text-dim;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.66rem;
+    padding: 0 8px;
+    transition: all 0.15s;
+    margin: 0 2px;
+
+    &:hover {
+      background: rgba($gold, 0.1);
+      border-color: rgba($gold, 0.25);
     }
   }
 
@@ -614,6 +675,39 @@ $danger-hover: rgba(220, 100, 100, 0.7);
     width: 32px;
     min-width: 32px;
     font-size: 0.78rem;
+  }
+
+  .list-header {
+    padding-left: 48px;
+
+    &__personal {
+      width: 42px;
+    }
+
+    &__grandma {
+      width: 42px;
+      font-size: 0;
+
+      &::after {
+        content: 'Grandma';
+        font-size: 0.5rem;
+      }
+    }
+
+    &__actions {
+      width: 84px;
+    }
+  }
+
+  .frag-row__grandma-status {
+    width: 34px;
+    min-width: 34px;
+    justify-content: center;
+    padding: 0;
+  }
+
+  .frag-row__grandma-label {
+    display: none;
   }
 
   .controls {

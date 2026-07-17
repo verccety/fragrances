@@ -39,11 +39,18 @@
 
   <!-- Legend -->
   <div class="legend">
-    <span>Click status to cycle: <strong>○</strong> None → <strong>✅</strong> Enjoy → <strong>🚩</strong> Dislike</span>
+    <span>Personal: <strong>○</strong> None → <strong>✅</strong> Enjoy → <strong>🚩</strong> Dislike</span>
+    <span>Grandma approved: <strong>❔</strong> Unknown → <strong>👎</strong> Disliked → <strong>👍</strong> Liked → <strong>➖</strong> Indifferent</span>
   </div>
 
   <!-- Drag-drop list -->
   <div class="list-container">
+    <div class="list-header">
+      <span class="list-header__name">Fragrance</span>
+      <span class="list-header__personal">Personal</span>
+      <span class="list-header__grandma">Grandma<br>approved</span>
+      <span class="list-header__actions"></span>
+    </div>
     @if (isSearchActive()) {
       <!-- No drag reorder during search, show flat list -->
       @for (entry of filteredItems(); track entry.index) {
@@ -76,6 +83,17 @@
             title="Toggle status"
           >
             {{ entry.item.status ? getStatusIcon(entry.item.status) : '○' }}
+          </button>
+          <button
+            class="frag-row__grandma-status"
+            (click)="toggleGrandmaStatus(entry.index)"
+            [attr.aria-label]="'Grandma approved: ' + getGrandmaStatusLabel(entry.item.grandmaStatus)"
+            [title]="'Grandma approved: ' + getGrandmaStatusLabel(entry.item.grandmaStatus)"
+          >
+            <span aria-hidden="true">{{ getGrandmaStatusIcon(entry.item.grandmaStatus) }}</span>
+            <span class="frag-row__grandma-label">
+              {{ getGrandmaStatusLabel(entry.item.grandmaStatus) }}
+            </span>
           </button>
           <div class="frag-row__arrows">
             <button
@@ -172,6 +190,17 @@
             >
               {{ entry.item.status ? getStatusIcon(entry.item.status) : '○' }}
             </button>
+            <button
+              class="frag-row__grandma-status"
+              (click)="toggleGrandmaStatus(entry.index)"
+              [attr.aria-label]="'Grandma approved: ' + getGrandmaStatusLabel(entry.item.grandmaStatus)"
+              [title]="'Grandma approved: ' + getGrandmaStatusLabel(entry.item.grandmaStatus)"
+            >
+              <span aria-hidden="true">{{ getGrandmaStatusIcon(entry.item.grandmaStatus) }}</span>
+              <span class="frag-row__grandma-label">
+                {{ getGrandmaStatusLabel(entry.item.grandmaStatus) }}
+              </span>
+            </button>
             <div class="frag-row__arrows">
               <button
                 class="frag-row__arrow"
@@ -248,7 +277,7 @@
         </div>
         <p class="modal__hint">
           Paste your formatted list below. Expected format:<br>
-          <code>1) Fragrance Name (✅)</code> or <code>2) Fragrance Name</code>
+          <code>1) Fragrance Name (✅) [Grandma: 👍]</code>
         </p>
         <textarea
           class="modal__textarea"
@@ -269,6 +298,7 @@
                   @if (item.status) {
                     <span>{{ getStatusIcon(item.status) }}</span>
                   }
+                  <span>{{ getGrandmaStatusIcon(item.grandmaStatus) }}</span>
                 </div>
               }
               @if (importPreview().length > 5) {
