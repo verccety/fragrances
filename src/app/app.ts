@@ -170,12 +170,6 @@ export class App {
     if (event.key === 'Enter') {
       event.preventDefault();
       this.saveRename(realIndex);
-      return;
-    }
-
-    if (event.key === 'Escape') {
-      event.preventDefault();
-      this.cancelRename();
     }
   }
 
