@@ -12,13 +12,31 @@
       class="modal__textarea"
       placeholder="Paste your fragrance list here..."
       [value]="text()"
-      (input)="text.set($any($event.target).value)"
+      (input)="onTextInput($any($event.target).value)"
     ></textarea>
+
+    <div class="modal__file">
+      <span class="modal__file-label">or restore a backup file</span>
+      <button class="modal__file-button" (click)="fileInput.click()">Choose backup file…</button>
+      <input
+        #fileInput
+        class="modal__file-input"
+        type="file"
+        accept=".json,application/json"
+        (change)="onFileSelected(fileInput)"
+      />
+    </div>
+    @if (fileError(); as error) {
+      <p class="modal__error" role="alert">{{ error }}</p>
+    }
 
     @if (parsed().length > 0) {
       <div class="modal__preview">
         <span class="modal__preview-label">
           Detected <strong>{{ parsed().length }}</strong> fragrances
+          @if (file(); as loaded) {
+            in {{ loaded.name }}
+          }
         </span>
         <div class="modal__preview-list">
           @for (item of preview(); track $index) {

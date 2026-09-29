@@ -96,9 +96,18 @@
   <div class="export-section">
     <h3 class="export-section__title">Formatted Export</h3>
     <textarea class="export-section__textarea" readonly [value]="formatted()"></textarea>
-    <button class="btn btn--copy" [class.btn--copied]="copied()" (click)="copyToClipboard()">
-      {{ copied() ? 'Copied ✓' : 'Copy to Clipboard' }}
-    </button>
+    <div class="export-section__actions">
+      <button class="btn btn--copy" [class.btn--copied]="copied()" (click)="copyToClipboard()">
+        {{ copied() ? 'Copied ✓' : 'Copy to Clipboard' }}
+      </button>
+      <button
+        class="btn btn--backup"
+        (click)="downloadBackup()"
+        title="Save the whole list as a JSON file you can restore via Import"
+      >
+        ↓ Download Backup
+      </button>
+    </div>
   </div>
 
   @if (showImport()) {

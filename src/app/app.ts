@@ -7,6 +7,7 @@ import {
   PERSONAL_STATUSES,
 } from './fragrance/fragrance.model';
 import { formatList } from './fragrance/fragrance.format';
+import { backupFileName, createBackup } from './fragrance/fragrance.backup';
 import { FragranceStore } from './fragrance/fragrance.store';
 import { FragranceRow } from './fragrance-row/fragrance-row';
 import { ImportDialog } from './import-dialog/import-dialog';
@@ -69,6 +70,18 @@ export class App {
       this.copied.set(true);
       setTimeout(() => this.copied.set(false), 2000);
     });
+  }
+
+  protected downloadBackup(): void {
+    const now = new Date();
+    const blob = new Blob([createBackup(this.store.items(), now)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = backupFileName(now);
+    link.click();
+    // Revoking right away can cancel the download in some browsers (notably iOS Safari).
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
   }
 
   protected openImport(): void {

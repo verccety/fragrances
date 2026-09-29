@@ -92,6 +92,45 @@
     }
   }
 
+  &__file {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 12px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.72rem;
+  }
+
+  &__file-label {
+    color: rgba($gold, 0.4);
+  }
+
+  &__file-button {
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba($gold, 0.2);
+    border-radius: 6px;
+    color: rgba($gold, 0.8);
+    cursor: pointer;
+    font: inherit;
+    padding: 7px 14px;
+    transition: all 0.2s;
+
+    &:hover {
+      background: rgba($gold, 0.1);
+    }
+  }
+
+  &__file-input {
+    display: none;
+  }
+
+  &__error {
+    margin-top: 10px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.72rem;
+    color: rgba(220, 140, 140, 0.9);
+  }
+
   &__preview {
     margin-top: 16px;
     padding: 14px;

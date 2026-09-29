@@ -3,6 +3,7 @@ import { CdkDragDrop } from '@angular/cdk/drag-drop';
 import { App } from './app';
 import { Fragrance, FragranceData } from './fragrance/fragrance.model';
 import { formatList } from './fragrance/fragrance.format';
+import { createBackup, readBackup } from './fragrance/fragrance.backup';
 import { INITIAL_FRAGRANCES } from './fragrance/fragrance.data';
 
 const STORAGE_KEY = 'fragrance-app.items.v1';
@@ -620,6 +621,28 @@ describe('App', () => {
         vi.useRealTimers();
       }
     });
+    it('downloads the whole list as a dated JSON backup', async () => {
+      // jsdom implements neither object URLs nor navigation on link clicks.
+      const createObjectURL = vi.fn<(blob: Blob) => string>(() => 'blob:backup');
+      Object.defineProperty(URL, 'createObjectURL', { value: createObjectURL, configurable: true });
+      Object.defineProperty(URL, 'revokeObjectURL', { value: vi.fn(), configurable: true });
+      const click = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
+      const page = await render();
+
+      try {
+        await page.click('.btn--backup');
+
+        const link = click.mock.contexts[0] as HTMLAnchorElement;
+        expect(link.download).toMatch(/^fragrances-\d{4}-\d{2}-\d{2}\.json$/);
+        expect(link.href).toBe('blob:backup');
+        expect(readBackup(await createObjectURL.mock.calls[0][0].text())).toEqual({
+          ok: true,
+          items: SAMPLE,
+        });
+      } finally {
+        click.mockRestore();
+      }
+    });
   });
 
   describe('import', () => {
@@ -739,6 +762,64 @@ describe('App', () => {
       await page.click('.btn--import');
 
       expect(page.exists('.frag-row__input')).toBe(false);
+    });
+
+    describe('from a backup file', () => {
+      const BACKUP_ITEMS: FragranceData[] = [
+        { name: 'Amouage Outlands', status: 'enjoy', grandmaStatus: 'liked' },
+        { name: 'Memo African Leather', status: null, grandmaStatus: 'unknown' },
+        { name: 'Nishane Hacivat', status: 'dislike', grandmaStatus: 'indifferent' },
+      ];
+
+      async function chooseFile(page: Page, content: string, name: string): Promise<void> {
+        const input = page.query<HTMLInputElement>('.modal__file-input');
+        const file = new File([content], name, { type: 'application/json' });
+        Object.defineProperty(input, 'files', { value: [file], configurable: true });
+        input.dispatchEvent(new Event('change'));
+        // Reading the file is async; wait until the dialog shows the outcome.
+        await vi.waitFor(async () => {
+          await page.fixture.whenStable();
+          expect(page.exists('.modal__preview') || page.exists('.modal__error')).toBe(true);
+        });
+      }
+
+      it('previews and restores the backup', async () => {
+        const page = await render();
+        await page.click('.btn--import');
+
+        await chooseFile(page, createBackup(BACKUP_ITEMS), 'fragrances-2026-09-30.json');
+
+        expect(page.query('.modal__preview-label').textContent!.replace(/\s+/g, ' ').trim()).toBe(
+          'Detected 3 fragrances in fragrances-2026-09-30.json',
+        );
+        await page.click(confirmButton(page));
+
+        expect(page.exists('.modal')).toBe(false);
+        expect(page.names()).toEqual(BACKUP_ITEMS.map((f) => f.name));
+        expect(savedItems()).toEqual(BACKUP_ITEMS);
+      });
+
+      it('explains why a file cannot be restored and keeps import disabled', async () => {
+        const page = await render();
+        await page.click('.btn--import');
+
+        await chooseFile(page, '{oops', 'notes.json');
+
+        expect(page.query('.modal__error').textContent!.trim()).toBe(
+          'notes.json: This file is not valid JSON.',
+        );
+        expect(confirmButton(page).disabled).toBe(true);
+      });
+
+      it('switches back to the pasted text when typing', async () => {
+        const page = await render();
+        await page.click('.btn--import');
+        await chooseFile(page, createBackup(BACKUP_ITEMS), 'fragrances-2026-09-30.json');
+
+        await page.type('.modal__textarea', IMPORT_TEXT);
+
+        expect(confirmButton(page).textContent!.trim()).toBe('Replace List (2 items)');
+      });
     });
   });
 });
