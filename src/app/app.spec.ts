@@ -741,6 +741,161 @@ describe('App', () => {
     });
   });
 
+  describe('refining the ranking', () => {
+    const LOG_KEY = 'fragrance-app.compared.v1';
+    beforeEach(() => seed(SAMPLE));
+
+    const open = (page: Page) => page.click('.btn--refine');
+    const cardNames = (page: Page) =>
+      ['.refine__card--left', '.refine__card--right'].map((side) =>
+        page.query(`${side} .comparison-card__name`).textContent!.trim(),
+      );
+    const text = (page: Page, selector: string) =>
+      page.query(selector).textContent!.replace(/\s+/g, ' ').trim();
+    const loggedIds = () => Object.keys(JSON.parse(localStorage.getItem(LOG_KEY) ?? '{}'));
+
+    /** Clicks the card of the fragrance ranked higher (`upper`) or lower in the current list. */
+    async function choose(page: Page, which: 'upper' | 'lower'): Promise<[string, string]> {
+      const [left, right] = cardNames(page);
+      const leftIsUpper = page.names().indexOf(left) < page.names().indexOf(right);
+      const upper = leftIsUpper ? left : right;
+      const lower = leftIsUpper ? right : left;
+      const clickLeft = (which === 'upper') === leftIsUpper;
+      await page.click(clickLeft ? '.refine__card--left' : '.refine__card--right');
+      return [upper, lower];
+    }
+
+    it('asks about two different fragrances without showing their ranks', async () => {
+      const page = await render();
+
+      await open(page);
+
+      const [left, right] = cardNames(page);
+      expect(left).not.toBe(right);
+      expect(SAMPLE.map((f) => f.name)).toEqual(expect.arrayContaining([left, right]));
+      expect(page.exists('.comparison-card__caption')).toBe(false);
+      expect(text(page, '.refine__progress')).toBe('Answered 0 · 0 changes');
+    });
+
+    it('moves the preferred lower fragrance right above the other once applied', async () => {
+      const page = await render();
+      await open(page);
+
+      const [upper, lower] = await choose(page, 'lower');
+      expect(text(page, '.refine__progress')).toBe('Answered 1 · 1 change');
+      await page.click('.refine__done');
+
+      const from = page.names().indexOf(lower) + 1;
+      const to = page.names().indexOf(upper) + 1;
+      expect(text(page, '.refine__move-name')).toBe(lower);
+      expect(text(page, '.refine__move-ranks')).toBe(`#${from} → #${to}`);
+      expect(page.names()).toEqual(SAMPLE.map((f) => f.name));
+
+      await page.click('.refine__apply');
+
+      expect(page.exists('.modal')).toBe(false);
+      expect(page.names().indexOf(lower)).toBe(page.names().indexOf(upper) - 1);
+      expect(savedItems().map((f) => f.name)).toEqual(page.names());
+      expect(loggedIds()).toHaveLength(2);
+    });
+
+    it('keeps the order and remembers the comparison when nothing changed', async () => {
+      const page = await render();
+      await open(page);
+
+      await choose(page, 'upper');
+      await page.click('.refine__done');
+
+      expect(text(page, '.refine__no-changes')).toBe('No changes — your ranking holds up.');
+      await page.click('.refine__apply');
+
+      expect(page.names()).toEqual(SAMPLE.map((f) => f.name));
+      expect(loggedIds()).toHaveLength(2);
+    });
+
+    it.each([
+      ['Cancel on the summary', async (page: Page) => page.click('.refine__cancel')],
+      ['Escape', async (page: Page) => page.press(document, 'Escape')],
+    ])('discards the whole session via %s', async (_, close) => {
+      const page = await render();
+      await open(page);
+      await choose(page, 'lower');
+      await page.click('.refine__done');
+
+      await close(page);
+
+      expect(page.exists('.modal')).toBe(false);
+      expect(page.names()).toEqual(SAMPLE.map((f) => f.name));
+      expect(localStorage.getItem(LOG_KEY)).toBeNull();
+    });
+
+    it('takes answers back to the previous pair', async () => {
+      const page = await render();
+      await open(page);
+      const firstPair = cardNames(page);
+
+      await choose(page, 'lower');
+      await page.click('.refine__back');
+
+      expect(cardNames(page)).toEqual(firstPair);
+      expect(text(page, '.refine__progress')).toBe('Answered 0 · 0 changes');
+    });
+
+    it('goes back from the summary to more questions', async () => {
+      const page = await render();
+      await open(page);
+      await choose(page, 'upper');
+      await page.click('.refine__done');
+
+      await page.click('.refine__continue');
+
+      expect(text(page, '.refine__progress')).toBe('Answered 1 · 0 changes');
+    });
+
+    it('answers with the arrow keys', async () => {
+      const page = await render();
+      await open(page);
+
+      await page.press(document, 'ArrowLeft');
+      await page.press(document, 'ArrowRight');
+
+      expect(text(page, '.refine__progress')).toMatch(/^Answered 2 · /);
+    });
+
+    it('ends the questions when every pair has been compared', async () => {
+      seed(SAMPLE.slice(0, 2));
+      const page = await render();
+      await open(page);
+
+      await choose(page, 'upper');
+
+      expect(text(page, '.refine__note')).toBe('No more pairs to compare right now.');
+      expect(page.exists('.refine__continue')).toBe(false);
+    });
+
+    it('starts from the fragrance compared least recently', async () => {
+      seed(SAMPLE.map((f, i) => ({ ...f, id: `id${i}` })));
+      localStorage.setItem(LOG_KEY, JSON.stringify({ id0: 3, id1: 2, id2: 1 }));
+      vi.spyOn(Math, 'random').mockReturnValue(0);
+      const page = await render();
+
+      try {
+        await open(page);
+
+        expect(cardNames(page)).toContain('Kilian Smoking Hot');
+      } finally {
+        vi.mocked(Math.random).mockRestore();
+      }
+    });
+
+    it('is unavailable with fewer than two fragrances', async () => {
+      seed([SAMPLE[0]]);
+      const page = await render();
+
+      expect(page.query<HTMLButtonElement>('.btn--refine').disabled).toBe(true);
+    });
+  });
+
   describe('export', () => {
     beforeEach(() => seed(SAMPLE));
 

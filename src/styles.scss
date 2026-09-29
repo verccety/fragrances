@@ -47,14 +47,20 @@ body {
 
   &--add,
   &--import,
+  &--refine,
   &--backup {
     background: $gold-faint;
     border: 1px solid rgba($gold, 0.25);
     color: rgba($gold, 0.85);
     padding: 10px 18px;
 
-    &:hover {
+    &:hover:not(:disabled) {
       background: rgba($gold, 0.2);
+    }
+
+    &:disabled {
+      opacity: 0.35;
+      cursor: not-allowed;
     }
   }
 

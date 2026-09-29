@@ -82,6 +82,18 @@ export class FragranceStore {
     });
   }
 
+  /** Puts fragrances in the given id order; any not listed keep their order at the end. */
+  public reorder(ids: readonly string[]): void {
+    this.state.update((items) => {
+      const byId = new Map(items.map((item) => [item.id, item]));
+      const listed = new Set(ids);
+      return [
+        ...ids.map((id) => byId.get(id)).filter((item) => item !== undefined),
+        ...items.filter((item) => !listed.has(item.id)),
+      ];
+    });
+  }
+
   public replaceAll(items: readonly FragranceData[]): void {
     this.state.set(items.map((data) => createFragrance(data)));
   }

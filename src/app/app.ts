@@ -9,18 +9,29 @@ import {
 import { formatList } from './fragrance/fragrance.format';
 import { backupFileName, createBackup } from './fragrance/fragrance.backup';
 import { FragranceStore } from './fragrance/fragrance.store';
+import { ComparisonLog } from './fragrance/fragrance.comparison-log';
 import { FragranceRow } from './fragrance-row/fragrance-row';
 import { ImportDialog } from './import-dialog/import-dialog';
 import { PlacementDialog } from './placement-dialog/placement-dialog';
+import { RefineDialog, RefineResult } from './refine-dialog/refine-dialog';
 
 @Component({
   selector: 'app-root',
-  imports: [CdkDropList, CdkDrag, CdkDragPlaceholder, FragranceRow, ImportDialog, PlacementDialog],
+  imports: [
+    CdkDropList,
+    CdkDrag,
+    CdkDragPlaceholder,
+    FragranceRow,
+    ImportDialog,
+    PlacementDialog,
+    RefineDialog,
+  ],
   templateUrl: './app.html',
   styleUrl: './app.scss',
 })
 export class App {
   protected readonly store = inject(FragranceStore);
+  protected readonly comparisons = inject(ComparisonLog);
   protected readonly personalStatuses = PERSONAL_STATUSES;
   protected readonly grandmaStatuses = GRANDMA_STATUSES;
 
@@ -29,6 +40,7 @@ export class App {
   protected readonly editingId = signal<string | null>(null);
   protected readonly showImport = signal(false);
   protected readonly placingId = signal<string | null>(null);
+  protected readonly showRefine = signal(false);
   protected readonly copied = signal(false);
 
   /** Items matching the search, each with its rank in the full list. */
@@ -96,6 +108,17 @@ export class App {
   protected applyPlacement(id: string, index: number): void {
     this.store.moveTo(id, index);
     this.placingId.set(null);
+  }
+
+  protected openRefine(): void {
+    this.cancelRename();
+    this.showRefine.set(true);
+  }
+
+  protected finishRefine({ order, compared }: RefineResult): void {
+    this.store.reorder(order);
+    this.comparisons.record(compared);
+    this.showRefine.set(false);
   }
 
   protected openImport(): void {

@@ -1,0 +1,60 @@
+@use '../../theme' as *;
+
+.refine {
+  &__actions {
+    flex-wrap: wrap;
+  }
+
+  &__spacer {
+    flex: 1;
+  }
+
+  &__summary {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 8px 0;
+    font-family: 'DM Sans', sans-serif;
+  }
+
+  &__note,
+  &__answered {
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    color: rgba($gold, 0.5);
+    text-transform: uppercase;
+  }
+
+  &__moves {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    list-style: none;
+  }
+
+  &__move {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 8px 12px;
+    background: $bg-card;
+    border: 1px solid rgba($gold, 0.1);
+    border-radius: 6px;
+    font-size: 0.8rem;
+  }
+
+  &__move-name {
+    color: $text-dim;
+  }
+
+  &__move-ranks {
+    color: rgba($gold, 0.85);
+    white-space: nowrap;
+  }
+
+  &__no-changes {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-size: 1.15rem;
+    color: $text-dim;
+  }
+}

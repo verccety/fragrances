@@ -1,0 +1,100 @@
+<div class="modal-backdrop" (click)="dismissed.emit()">
+  <div
+    class="modal refine"
+    role="dialog"
+    aria-labelledby="refine-title"
+    (click)="$event.stopPropagation()"
+  >
+    <div class="modal__header">
+      <h2 class="modal__title" id="refine-title">Refine Ranking</h2>
+      <button class="modal__close" (click)="dismissed.emit()" aria-label="Close">✕</button>
+    </div>
+
+    @if (!showSummary() && cards(); as cards) {
+      <p class="comparison__question">Which do you like more?</p>
+      <p class="comparison__progress refine__progress">
+        Answered {{ session().answered }} · {{ moves().length }}
+        {{ moves().length === 1 ? 'change' : 'changes' }}
+      </p>
+
+      <div class="comparison__cards">
+        <button
+          appComparisonCard
+          class="refine__card refine__card--left"
+          [fragrance]="cards.left.item"
+          keyHint="←"
+          (click)="answer(cards.left.answer)"
+        ></button>
+
+        <span class="comparison__vs" aria-hidden="true">vs</span>
+
+        <button
+          appComparisonCard
+          class="refine__card refine__card--right"
+          [fragrance]="cards.right.item"
+          keyHint="→"
+          (click)="answer(cards.right.answer)"
+        ></button>
+      </div>
+
+      <div class="modal__actions refine__actions">
+        <button
+          class="btn btn--cancel refine__back"
+          [disabled]="history().length === 0"
+          (click)="back()"
+        >
+          ← Back
+        </button>
+        <span class="refine__spacer"></span>
+        <button class="btn btn--cancel refine__skip" (click)="answer('skip')">Skip</button>
+        <button class="btn btn--cancel refine__same" (click)="answer('same')">Same</button>
+        <button class="btn btn--confirm refine__done" (click)="summaryRequested.set(true)">
+          Done
+        </button>
+      </div>
+    } @else {
+      <div class="refine__summary">
+        @if (!session().current) {
+          <p class="refine__note">No more pairs to compare right now.</p>
+        }
+        <p class="refine__answered">
+          Answered {{ session().answered }} {{ session().answered === 1 ? 'pair' : 'pairs' }}
+        </p>
+
+        @if (moves().length > 0) {
+          <ul class="refine__moves">
+            @for (move of moves(); track move.id) {
+              <li class="refine__move">
+                <span class="refine__move-name">{{ move.item.name }}</span>
+                <span class="refine__move-ranks">#{{ move.from }} → #{{ move.to }}</span>
+              </li>
+            }
+          </ul>
+        } @else {
+          <p class="refine__no-changes">No changes — your ranking holds up.</p>
+        }
+      </div>
+
+      <div class="modal__actions">
+        <button
+          class="btn btn--cancel refine__back"
+          [disabled]="history().length === 0"
+          (click)="back()"
+        >
+          ← Back
+        </button>
+        @if (session().current) {
+          <button class="btn btn--cancel refine__continue" (click)="summaryRequested.set(false)">
+            Keep going
+          </button>
+        }
+        @if (moves().length > 0) {
+          <button class="btn btn--cancel refine__cancel" (click)="dismissed.emit()">Cancel</button>
+          <button class="btn btn--confirm refine__apply" (click)="finish()">Apply</button>
+        } @else {
+          <button class="btn btn--confirm refine__apply" (click)="finish()">Close</button>
+        }
+      </div>
+    }
+  </div>
+</div>

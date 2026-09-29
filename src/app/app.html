@@ -24,6 +24,14 @@
     />
     <button class="btn btn--add" (click)="addItem()">+ Add</button>
     <button class="btn btn--import" (click)="openImport()">↓ Import</button>
+    <button
+      class="btn btn--refine"
+      [disabled]="store.items().length < 2"
+      (click)="openRefine()"
+      title="Compare pairs of ranked fragrances to fix the order"
+    >
+      ⇅ Refine
+    </button>
   </div>
 
   <!-- Search -->
@@ -114,6 +122,15 @@
 
   @if (showImport()) {
     <app-import-dialog (confirmed)="importList($event)" (dismissed)="showImport.set(false)" />
+  }
+
+  @if (showRefine()) {
+    <app-refine-dialog
+      [ranking]="store.items()"
+      [lastCompared]="comparisons.lastCompared()"
+      (finished)="finishRefine($event)"
+      (dismissed)="showRefine.set(false)"
+    />
   }
 
   @if (placing(); as fragrance) {
