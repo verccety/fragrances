@@ -43,9 +43,9 @@ export function grandmaStatusLabel(status: GrandmaStatus): string {
 export function formatList(items: Fragrance[]): string {
   const fragrances = items
     .map((it, i) => {
-      const icon = statusIcon(it.status);
+      const icon = statusIcon(it.status) || '○';
       const grandmaIcon = grandmaStatusIcon(it.grandmaStatus);
-      return `${i + 1}) ${it.name}${icon ? ` (${icon})` : ''} [Grandma: ${grandmaIcon}]`;
+      return `${i + 1}) ${it.name} (${icon}) [Grandma: ${grandmaIcon}]`;
     })
     .join('\n');
 
@@ -58,7 +58,7 @@ export function parseList(text: string): Fragrance[] {
 
   for (const line of lines) {
     const match = line.match(
-      /^\d+\)\s+(.+?)(?:\s+\((✅|🚩)\))?(?:\s+\[Grandma:\s*(❔|👎|👍|➖)\])?$/,
+      /^\d+\)\s+(.+?)(?:\s+\((✅|🚩|○)\))?(?:\s+\[Grandma:\s*(❔|👎|👍|➖)\])?$/,
     );
     if (match) {
       const name = match[1].trim();
