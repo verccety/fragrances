@@ -1,4 +1,12 @@
-import { Component, computed, effect, signal } from '@angular/core';
+import {
+  Component,
+  ElementRef,
+  afterRenderEffect,
+  computed,
+  effect,
+  signal,
+  viewChild,
+} from '@angular/core';
 import { CdkDragDrop, DragDropModule, moveItemInArray } from '@angular/cdk/drag-drop';
 import { FormsModule } from '@angular/forms';
 import {
@@ -35,9 +43,16 @@ export class App {
   public importPreview = signal<Fragrance[]>([]);
   public copied = signal(false);
 
+  private readonly renameInput = viewChild<ElementRef<HTMLInputElement>>('renameInput');
+
   constructor() {
     effect(() => {
       this.saveItems(this.items());
+    });
+
+    // `autofocus` is ignored for inputs rendered after page load, so focus manually.
+    afterRenderEffect(() => {
+      this.renameInput()?.nativeElement.select();
     });
   }
 

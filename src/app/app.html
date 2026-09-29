@@ -65,7 +65,7 @@
               [value]="editingName()"
               (input)="editingName.set($any($event.target).value)"
               (keydown)="handleRenameKeydown($event, entry.index)"
-              autofocus
+              #renameInput
             />
           } @else {
             <span
@@ -171,7 +171,7 @@
                 [value]="editingName()"
                 (input)="editingName.set($any($event.target).value)"
                 (keydown)="handleRenameKeydown($event, entry.index)"
-                autofocus
+                #renameInput
               />
             } @else {
               <span
