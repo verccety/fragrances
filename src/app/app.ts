@@ -227,7 +227,8 @@ export class App {
         }))
         .filter((item) => item.name.length > 0);
 
-      return items.length > 0 ? items : structuredClone(INITIAL_FRAGRANCES);
+      // An empty saved list is valid; only fall back when every stored entry was unreadable.
+      return items.length > 0 || parsed.length === 0 ? items : structuredClone(INITIAL_FRAGRANCES);
     } catch {
       return structuredClone(INITIAL_FRAGRANCES);
     }
