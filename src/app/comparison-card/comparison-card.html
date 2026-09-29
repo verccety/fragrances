@@ -1,0 +1,8 @@
+@if (caption(); as caption) {
+  <span class="comparison-card__caption">{{ caption }}</span>
+}
+<span class="comparison-card__name">{{ fragrance().name }}</span>
+<span class="comparison-card__statuses">{{ personal().icon }} {{ grandma().icon }}</span>
+@if (keyHint(); as key) {
+  <span class="comparison-card__key" aria-hidden="true">{{ key }}</span>
+}

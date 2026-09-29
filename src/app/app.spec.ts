@@ -595,7 +595,7 @@ describe('App', () => {
       page.query(selector).textContent!.replace(/\s+/g, ' ').trim();
     const placedCard = '.placement__card--placed';
     const opponentCard = '.placement__card--opponent';
-    const opponentName = (page: Page) => text(page, `${opponentCard} .placement__card-name`);
+    const opponentName = (page: Page) => text(page, `${opponentCard} .comparison-card__name`);
     const cancelButton = '.modal__actions .btn--cancel:not(.placement__back)';
 
     it('compares the fragrance with the middle of the ranking first', async () => {
@@ -603,11 +603,11 @@ describe('App', () => {
 
       await open(page, 'Kilian Smoking Hot');
 
-      expect(text(page, `${placedCard} .placement__card-name`)).toBe('Kilian Smoking Hot');
-      expect(text(page, `${placedCard} .placement__card-rank`)).toBe('#4 · placing');
+      expect(text(page, `${placedCard} .comparison-card__name`)).toBe('Kilian Smoking Hot');
+      expect(text(page, `${placedCard} .comparison-card__caption`)).toBe('#4 · placing');
       expect(opponentName(page)).toBe('Xerjoff Naxos');
-      expect(text(page, `${opponentCard} .placement__card-rank`)).toBe('#2');
-      expect(text(page, '.placement__progress')).toBe('Question 1 of up to 2');
+      expect(text(page, `${opponentCard} .comparison-card__caption`)).toBe('#2');
+      expect(text(page, '.comparison__progress')).toBe('Question 1 of up to 2');
     });
 
     it('moves the fragrance to the place found by the answers once applied', async () => {
@@ -669,12 +669,12 @@ describe('App', () => {
       await page.click('.placement__back');
 
       expect(opponentName(page)).toBe('Creed Aventus');
-      expect(text(page, '.placement__progress')).toBe('Question 2 of up to 2');
+      expect(text(page, '.comparison__progress')).toBe('Question 2 of up to 2');
 
       await page.click('.placement__back');
 
       expect(opponentName(page)).toBe('Xerjoff Naxos');
-      expect(text(page, '.placement__progress')).toBe('Question 1 of up to 2');
+      expect(text(page, '.comparison__progress')).toBe('Question 1 of up to 2');
     });
 
     it('answers with the arrow keys', async () => {

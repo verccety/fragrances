@@ -11,33 +11,31 @@
     </div>
 
     @if (opponent(); as opponent) {
-      <p class="placement__question">Which do you like more?</p>
-      <p class="placement__progress">
+      <p class="comparison__question">Which do you like more?</p>
+      <p class="comparison__progress">
         Question {{ questionNumber() }} of up to {{ maxQuestions() }}
       </p>
 
-      <div class="placement__cards">
-        <button class="placement__card placement__card--placed" (click)="answer('better')">
-          <span class="placement__card-rank">#{{ currentRank() }} · placing</span>
-          <span class="placement__card-name">{{ fragrance().name }}</span>
-          <span class="placement__card-statuses">
-            {{ personalStatus(fragrance().status).icon }}
-            {{ grandmaStatus(fragrance().grandmaStatus).icon }}
-          </span>
-          <span class="placement__card-key" aria-hidden="true">←</span>
-        </button>
+      <div class="comparison__cards">
+        <button
+          appComparisonCard
+          class="placement__card--placed"
+          [fragrance]="fragrance()"
+          [caption]="'#' + currentRank() + ' · placing'"
+          keyHint="←"
+          (click)="answer('better')"
+        ></button>
 
-        <span class="placement__vs" aria-hidden="true">vs</span>
+        <span class="comparison__vs" aria-hidden="true">vs</span>
 
-        <button class="placement__card placement__card--opponent" (click)="answer('worse')">
-          <span class="placement__card-rank">#{{ opponent.rank }}</span>
-          <span class="placement__card-name">{{ opponent.item.name }}</span>
-          <span class="placement__card-statuses">
-            {{ personalStatus(opponent.item.status).icon }}
-            {{ grandmaStatus(opponent.item.grandmaStatus).icon }}
-          </span>
-          <span class="placement__card-key" aria-hidden="true">→</span>
-        </button>
+        <button
+          appComparisonCard
+          class="placement__card--opponent"
+          [fragrance]="opponent.item"
+          [caption]="'#' + opponent.rank"
+          keyHint="→"
+          (click)="answer('worse')"
+        ></button>
       </div>
 
       <div class="modal__actions placement__actions">

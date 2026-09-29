@@ -1,5 +1,5 @@
 import { Component, computed, input, linkedSignal, output, signal } from '@angular/core';
-import { Fragrance, grandmaStatus, personalStatus } from '../fragrance/fragrance.model';
+import { Fragrance } from '../fragrance/fragrance.model';
 import {
   PlacementAnswer,
   PlacementSearch,
@@ -8,6 +8,7 @@ import {
   opponentIndex,
   startPlacement,
 } from '../fragrance/fragrance.placement';
+import { ComparisonCard } from '../comparison-card/comparison-card';
 
 /**
  * Finds where a fragrance belongs by asking which of two fragrances is liked more,
@@ -15,6 +16,7 @@ import {
  */
 @Component({
   selector: 'app-placement-dialog',
+  imports: [ComparisonCard],
   templateUrl: './placement-dialog.html',
   styleUrl: './placement-dialog.scss',
   host: {
@@ -55,9 +57,6 @@ export class PlacementDialog {
   });
   protected readonly questionNumber = computed(() => this.history().length + 1);
   protected readonly maxQuestions = computed(() => maxPlacementQuestions(this.others().length));
-
-  protected readonly personalStatus = personalStatus;
-  protected readonly grandmaStatus = grandmaStatus;
 
   protected answer(answer: PlacementAnswer): void {
     this.history.update((history) => [...history, this.search()]);
