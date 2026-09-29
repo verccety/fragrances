@@ -55,6 +55,21 @@ export function nextGrandmaStatus(current: GrandmaStatus): GrandmaStatus {
   return nextIn(GRANDMA_STATUSES, current);
 }
 
+/** Reads one fragrance from untrusted data, repairing statuses; `null` when it has no name. */
+export function toFragranceData(value: unknown): FragranceData | null {
+  if (value === null || typeof value !== 'object') { return null; }
+
+  const item = value as Record<string, unknown>;
+  const name = String(item['name'] ?? '').trim();
+  if (!name) { return null; }
+
+  return {
+    name,
+    status: toFragranceStatus(item['status']),
+    grandmaStatus: toGrandmaStatus(item['grandmaStatus']),
+  };
+}
+
 /** Reads a status from untrusted data, falling back to "not set". */
 export function toFragranceStatus(value: unknown): FragranceStatus {
   return valueOrDefault(PERSONAL_STATUSES, value);

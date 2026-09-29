@@ -6,8 +6,7 @@ import {
   createFragrance,
   nextGrandmaStatus,
   nextStatus,
-  toFragranceStatus,
-  toGrandmaStatus,
+  toFragranceData,
 } from './fragrance.model';
 import { INITIAL_FRAGRANCES } from './fragrance.data';
 
@@ -97,20 +96,13 @@ function loadFragrances(): Fragrance[] {
     const parsed: unknown = JSON.parse(raw);
     if (!Array.isArray(parsed)) { return defaultFragrances(); }
 
-    const items = parsed
-      .filter((item): item is Record<string, unknown> => item !== null && typeof item === 'object')
-      .map((item) =>
-        createFragrance(
-          {
-            name: String(item['name'] ?? '').trim(),
-            status: toFragranceStatus(item['status']),
-            grandmaStatus: toGrandmaStatus(item['grandmaStatus']),
-          },
-          // Lists saved before ids existed get one on first load.
-          typeof item['id'] === 'string' && item['id'] ? item['id'] : undefined,
-        ),
-      )
-      .filter((item) => item.name.length > 0);
+    const items = parsed.flatMap((item: unknown) => {
+      const data = toFragranceData(item);
+      if (!data) { return []; }
+      // Lists saved before ids existed get one on first load.
+      const id = (item as Record<string, unknown>)['id'];
+      return [createFragrance(data, typeof id === 'string' && id ? id : undefined)];
+    });
 
     // An empty saved list is valid; only fall back when every stored entry was unreadable.
     return items.length > 0 || parsed.length === 0 ? items : defaultFragrances();
