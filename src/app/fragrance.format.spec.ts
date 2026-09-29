@@ -1,4 +1,4 @@
-import { Fragrance } from './fragrance.model';
+import { FragranceData } from './fragrance.model';
 import { formatList, parseList } from './fragrance.format';
 import { INITIAL_FRAGRANCES } from './fragrance.data';
 
@@ -15,7 +15,7 @@ const LEGEND = [
 
 describe('formatList', () => {
   it('numbers every fragrance and appends the legend', () => {
-    const items: Fragrance[] = [
+    const items: FragranceData[] = [
       { name: 'Creed Aventus', status: 'enjoy', grandmaStatus: 'liked' },
       { name: 'Tom Ford Noir Extreme', status: 'dislike', grandmaStatus: 'disliked' },
       { name: 'Xerjoff Naxos', status: null, grandmaStatus: 'indifferent' },

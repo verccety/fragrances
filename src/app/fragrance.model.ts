@@ -24,10 +24,19 @@ export const GRANDMA_STATUSES = [
 export type FragranceStatus = (typeof PERSONAL_STATUSES)[number]['value'];
 export type GrandmaStatus = (typeof GRANDMA_STATUSES)[number]['value'];
 
-export interface Fragrance {
+/** A fragrance as written in the export format or the defaults, without identity. */
+export interface FragranceData {
   name: string;
   status: FragranceStatus;
   grandmaStatus: GrandmaStatus;
+}
+
+export interface Fragrance extends FragranceData {
+  id: string;
+}
+
+export function createFragrance(data: FragranceData, id: string = crypto.randomUUID()): Fragrance {
+  return { id, name: data.name, status: data.status, grandmaStatus: data.grandmaStatus };
 }
 
 export function personalStatus(status: FragranceStatus): StatusOption<FragranceStatus> {

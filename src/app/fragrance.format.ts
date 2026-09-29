@@ -1,5 +1,5 @@
 import {
-  Fragrance,
+  FragranceData,
   GRANDMA_STATUSES,
   PERSONAL_STATUSES,
   StatusOption,
@@ -16,7 +16,7 @@ const LINE_PATTERN = new RegExp(
   'u',
 );
 
-export function formatList(items: readonly Fragrance[]): string {
+export function formatList(items: readonly FragranceData[]): string {
   const lines = items.map(
     (item, i) =>
       `${i + 1}) ${item.name} (${personalStatus(item.status).icon}) ` +
@@ -30,8 +30,8 @@ export function formatList(items: readonly Fragrance[]): string {
 }
 
 /** Reads fragrances from an exported list, skipping lines that are not list items. */
-export function parseList(text: string): Fragrance[] {
-  const result: Fragrance[] = [];
+export function parseList(text: string): FragranceData[] {
+  const result: FragranceData[] = [];
 
   for (const line of text.split('\n')) {
     const match = line.trim().match(LINE_PATTERN);

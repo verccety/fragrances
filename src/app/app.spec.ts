@@ -1,13 +1,13 @@
 ﻿import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { CdkDragDrop } from '@angular/cdk/drag-drop';
 import { App } from './app';
-import { Fragrance } from './fragrance.model';
+import { Fragrance, FragranceData } from './fragrance.model';
 import { formatList } from './fragrance.format';
 import { INITIAL_FRAGRANCES } from './fragrance.data';
 
 const STORAGE_KEY = 'fragrance-app.items.v1';
 
-const SAMPLE: Fragrance[] = [
+const SAMPLE: FragranceData[] = [
   { name: 'Creed Aventus', status: 'enjoy', grandmaStatus: 'liked' },
   { name: 'Xerjoff Naxos', status: null, grandmaStatus: 'unknown' },
   { name: 'Tom Ford Noir Extreme', status: 'dislike', grandmaStatus: 'disliked' },
@@ -19,7 +19,7 @@ function seed(items: unknown): void {
 }
 
 /** Saved items reduced to the user-visible fields, so extra stored fields don't break tests. */
-function savedItems(): Fragrance[] {
+function savedItems(): FragranceData[] {
   const raw = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? 'null') as Fragrance[];
   return raw.map(({ name, status, grandmaStatus }) => ({ name, status, grandmaStatus }));
 }
@@ -198,6 +198,22 @@ describe('App', () => {
       await render();
 
       expect(savedItems()).toEqual(INITIAL_FRAGRANCES);
+    });
+
+    it('gives lists saved without ids a unique id per fragrance and keeps them', async () => {
+      seed(SAMPLE);
+      const page = await render();
+      const savedIds = () =>
+        (JSON.parse(localStorage.getItem(STORAGE_KEY)!) as Fragrance[]).map((f) => f.id);
+
+      const ids = savedIds();
+      expect(ids.every((id) => typeof id === 'string' && id.length > 0)).toBe(true);
+      expect(new Set(ids).size).toBe(SAMPLE.length);
+
+      page.fixture.destroy();
+      await render();
+
+      expect(savedIds()).toEqual(ids);
     });
 
     it('keeps changes after a reload', async () => {

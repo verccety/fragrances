@@ -53,25 +53,25 @@
     </div>
     @if (isSearchActive()) {
       <!-- No drag reorder during search, show flat list -->
-      @for (entry of filteredItems(); track entry.index) {
+      @for (entry of visibleItems(); track entry.item.id) {
         <div class="frag-row">
           <span class="frag-row__handle">⠿</span>
-          <span class="frag-row__rank">{{ entry.index + 1 }}</span>
-          @if (isEditing(entry.index)) {
+          <span class="frag-row__rank">{{ entry.rank }}</span>
+          @if (isEditing(entry.item.id)) {
             <input
               class="frag-row__input"
               type="text"
               placeholder="Rename fragrance..."
               [value]="editingName()"
               (input)="editingName.set($any($event.target).value)"
-              (keydown)="handleRenameKeydown($event, entry.index)"
+              (keydown)="handleRenameKeydown($event, entry.item.id)"
               #renameInput
             />
           } @else {
             <span
               class="frag-row__name"
               title="Double-click to rename"
-              (dblclick)="startRename(entry.index)"
+              (dblclick)="startRename(entry.item)"
             >
               {{ entry.item.name }}
             </span>
@@ -79,14 +79,14 @@
           <button
             class="frag-row__status"
             [class.frag-row__status--empty]="!entry.item.status"
-            (click)="toggleStatus(entry.index)"
+            (click)="toggleStatus(entry.item.id)"
             title="Toggle status"
           >
             {{ entry.item.status ? getStatusIcon(entry.item.status) : '○' }}
           </button>
           <button
             class="frag-row__grandma-status"
-            (click)="toggleGrandmaStatus(entry.index)"
+            (click)="toggleGrandmaStatus(entry.item.id)"
             [attr.aria-label]="'Grandma approved: ' + getGrandmaStatusLabel(entry.item.grandmaStatus)"
             [title]="'Grandma approved: ' + getGrandmaStatusLabel(entry.item.grandmaStatus)"
           >
@@ -99,7 +99,7 @@
             <button
               class="frag-row__arrow"
               [disabled]="isRenaming()"
-              (click)="moveUp(entry.index)"
+              (click)="moveUp(entry.item.id)"
               title="Move up"
             >
               ▲
@@ -107,18 +107,18 @@
             <button
               class="frag-row__arrow"
               [disabled]="isRenaming()"
-              (click)="moveDown(entry.index)"
+              (click)="moveDown(entry.item.id)"
               title="Move down"
             >
               ▼
             </button>
           </div>
-          @if (isEditing(entry.index)) {
+          @if (isEditing(entry.item.id)) {
             <div class="frag-row__edit-actions">
               <button
                 class="frag-row__action frag-row__action--save"
                 [disabled]="editingName().trim().length === 0"
-                (click)="saveRename(entry.index)"
+                (click)="saveRename(entry.item.id)"
               >
                 Save
               </button>
@@ -128,7 +128,7 @@
             <button
               class="frag-row__edit"
               [disabled]="isRenaming()"
-              (click)="startRename(entry.index)"
+              (click)="startRename(entry.item)"
               title="Rename"
             >
               ✎
@@ -136,7 +136,7 @@
             <button
               class="frag-row__delete"
               [disabled]="isRenaming()"
-              (click)="removeItem(entry.index)"
+              (click)="removeItem(entry.item.id)"
               title="Remove"
             >
               ✕
@@ -151,7 +151,7 @@
         (cdkDropListDropped)="onDrop($event)"
         class="drop-zone"
       >
-        @for (entry of filteredItems(); track entry.index) {
+        @for (entry of visibleItems(); track entry.item.id) {
           <div
             cdkDrag
             class="frag-row"
@@ -162,22 +162,22 @@
             <div class="frag-row__placeholder" *cdkDragPlaceholder></div>
 
             <span class="frag-row__handle" cdkDragHandle>⠿</span>
-            <span class="frag-row__rank">{{ entry.index + 1 }}</span>
-            @if (isEditing(entry.index)) {
+            <span class="frag-row__rank">{{ entry.rank }}</span>
+            @if (isEditing(entry.item.id)) {
               <input
                 class="frag-row__input"
                 type="text"
                 placeholder="Rename fragrance..."
                 [value]="editingName()"
                 (input)="editingName.set($any($event.target).value)"
-                (keydown)="handleRenameKeydown($event, entry.index)"
+                (keydown)="handleRenameKeydown($event, entry.item.id)"
                 #renameInput
               />
             } @else {
               <span
                 class="frag-row__name"
                 title="Double-click to rename"
-                (dblclick)="startRename(entry.index)"
+                (dblclick)="startRename(entry.item)"
               >
                 {{ entry.item.name }}
               </span>
@@ -185,14 +185,14 @@
             <button
               class="frag-row__status"
               [class.frag-row__status--empty]="!entry.item.status"
-              (click)="toggleStatus(entry.index)"
+              (click)="toggleStatus(entry.item.id)"
               title="Toggle status"
             >
               {{ entry.item.status ? getStatusIcon(entry.item.status) : '○' }}
             </button>
             <button
               class="frag-row__grandma-status"
-              (click)="toggleGrandmaStatus(entry.index)"
+              (click)="toggleGrandmaStatus(entry.item.id)"
               [attr.aria-label]="'Grandma approved: ' + getGrandmaStatusLabel(entry.item.grandmaStatus)"
               [title]="'Grandma approved: ' + getGrandmaStatusLabel(entry.item.grandmaStatus)"
             >
@@ -205,7 +205,7 @@
               <button
                 class="frag-row__arrow"
                 [disabled]="isRenaming()"
-                (click)="moveUp(entry.index)"
+                (click)="moveUp(entry.item.id)"
                 title="Move up"
               >
                 ▲
@@ -213,18 +213,18 @@
               <button
                 class="frag-row__arrow"
                 [disabled]="isRenaming()"
-                (click)="moveDown(entry.index)"
+                (click)="moveDown(entry.item.id)"
                 title="Move down"
               >
                 ▼
               </button>
             </div>
-            @if (isEditing(entry.index)) {
+            @if (isEditing(entry.item.id)) {
               <div class="frag-row__edit-actions">
                 <button
                   class="frag-row__action frag-row__action--save"
                   [disabled]="editingName().trim().length === 0"
-                  (click)="saveRename(entry.index)"
+                  (click)="saveRename(entry.item.id)"
                 >
                   Save
                 </button>
@@ -234,7 +234,7 @@
               <button
                 class="frag-row__edit"
                 [disabled]="isRenaming()"
-                (click)="startRename(entry.index)"
+                (click)="startRename(entry.item)"
                 title="Rename"
               >
                 ✎
@@ -242,7 +242,7 @@
               <button
                 class="frag-row__delete"
                 [disabled]="isRenaming()"
-                (click)="removeItem(entry.index)"
+                (click)="removeItem(entry.item.id)"
                 title="Remove"
               >
                 ✕

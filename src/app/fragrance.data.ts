@@ -1,6 +1,6 @@
-import { Fragrance } from './fragrance.model';
+import { FragranceData } from './fragrance.model';
 
-const INITIAL_FRAGRANCES_WITHOUT_GRANDMA_STATUS: Omit<Fragrance, 'grandmaStatus'>[] = [
+const INITIAL_FRAGRANCES_WITHOUT_GRANDMA_STATUS: Omit<FragranceData, 'grandmaStatus'>[] = [
   { name: 'Creed Aventus', status: 'enjoy' },
   { name: 'Chanel Bleu de Chanel EDP', status: null },
   { name: 'Giorgio Armani Acqua Di Gio Profumo', status: 'enjoy' },
@@ -132,7 +132,7 @@ const INITIAL_FRAGRANCES_WITHOUT_GRANDMA_STATUS: Omit<Fragrance, 'grandmaStatus'
   { name: "Lalique Encre Noire A L'Extreme", status: 'dislike' },
 ];
 
-export const INITIAL_FRAGRANCES: Fragrance[] =
+export const INITIAL_FRAGRANCES: FragranceData[] =
   INITIAL_FRAGRANCES_WITHOUT_GRANDMA_STATUS.map((fragrance) => ({
     ...fragrance,
     grandmaStatus: 'unknown',
