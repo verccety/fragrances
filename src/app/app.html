@@ -83,6 +83,8 @@
           cdkDrag
           [fragrance]="entry.item"
           [rank]="entry.rank"
+          [tier]="entry.tier"
+          [tierLabel]="entry.tierLabel"
           [editing]="editingId() === entry.item.id"
           [locked]="isRenaming()"
           [placeable]="store.items().length > 1"

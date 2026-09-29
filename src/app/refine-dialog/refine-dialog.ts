@@ -8,6 +8,7 @@ import {
   refineMoves,
   startRefine,
 } from '../fragrance/fragrance.refine';
+import { tierChange } from '../fragrance/fragrance.tiers';
 import { ComparisonCard } from '../comparison-card/comparison-card';
 
 export interface RefineResult {
@@ -60,7 +61,11 @@ export class RefineDialog {
     return pair.upperOnLeft ? { left: upper, right: lower } : { left: lower, right: upper };
   });
   protected readonly moves = computed(() =>
-    refineMoves(this.session()).map((move) => ({ ...move, item: this.byId().get(move.id)! })),
+    refineMoves(this.session()).map((move) => ({
+      ...move,
+      item: this.byId().get(move.id)!,
+      tierMove: tierChange(move.from, move.to),
+    })),
   );
 
   protected answer(answer: RefineAnswer): void {

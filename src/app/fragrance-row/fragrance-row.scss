@@ -1,12 +1,17 @@
 @use '../../theme' as *;
 
 :host {
+  --tier-color: transparent;
+
+  position: relative;
   display: flex;
   align-items: center;
   margin-bottom: 2px;
   border-radius: 5px;
   background: $bg-card;
   border: 1px solid transparent;
+  // Tier stripe as an inset shadow, so it doesn't shift the row's content.
+  box-shadow: inset 3px 0 0 var(--tier-color);
   transition: all 0.15s ease;
   cursor: grab;
   user-select: none;
@@ -15,6 +20,47 @@
     background: rgba($gold, 0.05);
     border-color: rgba($gold, 0.1);
   }
+}
+
+:host([data-tier='top10']) {
+  --tier-color: rgba(222, 184, 92, 0.85);
+}
+
+:host([data-tier='top25']) {
+  --tier-color: rgba(200, 204, 214, 0.6);
+}
+
+:host([data-tier='top50']) {
+  --tier-color: rgba(176, 122, 82, 0.6);
+}
+
+// The heading sits in extra top space, so drag & drop still only sees rows.
+:host(.frag-row--tier-start) {
+  margin-top: 26px;
+}
+
+:host(.frag-row--tier-start:first-child) {
+  margin-top: 18px;
+}
+
+.frag-row__tier-label {
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 2px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.6rem;
+  letter-spacing: 0.18em;
+  color: var(--tier-color);
+  text-transform: uppercase;
+  pointer-events: none;
+}
+
+:host([data-tier='rest']) .frag-row__tier-label {
+  color: rgba($gold, 0.35);
+}
+
+:host(.cdk-drag-preview) .frag-row__tier-label {
+  display: none;
 }
 
 :host(.cdk-drag-disabled) {

@@ -66,6 +66,9 @@
             @for (move of moves(); track move.id) {
               <li class="refine__move">
                 <span class="refine__move-name">{{ move.item.name }}</span>
+                @if (move.tierMove; as tierMove) {
+                  <span class="refine__move-tier">{{ tierMove }}</span>
+                }
                 <span class="refine__move-ranks">#{{ move.from }} → #{{ move.to }}</span>
               </li>
             }

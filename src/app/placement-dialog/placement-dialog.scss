@@ -30,4 +30,12 @@
     letter-spacing: 0.08em;
     color: rgba($gold, 0.85);
   }
+
+  &__result-tier {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.66rem;
+    letter-spacing: 0.14em;
+    color: rgba($gold, 0.55);
+    text-transform: uppercase;
+  }
 }

@@ -8,6 +8,7 @@ import {
   opponentIndex,
   startPlacement,
 } from '../fragrance/fragrance.placement';
+import { tierChange } from '../fragrance/fragrance.tiers';
 import { ComparisonCard } from '../comparison-card/comparison-card';
 
 /**
@@ -49,6 +50,10 @@ export class PlacementDialog {
   protected readonly newRank = computed(() => {
     const result = this.search().result;
     return result === null ? null : result + 1;
+  });
+  protected readonly tierMove = computed(() => {
+    const newRank = this.newRank();
+    return newRank === null ? null : tierChange(this.currentRank(), newRank);
   });
   protected readonly opponent = computed(() => {
     if (this.search().result !== null) { return null; }

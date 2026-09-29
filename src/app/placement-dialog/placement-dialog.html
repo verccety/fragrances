@@ -58,6 +58,9 @@
             #{{ currentRank() }} → #{{ newRank() }}
           }
         </span>
+        @if (tierMove(); as tierMove) {
+          <span class="placement__result-tier">{{ tierMove }}</span>
+        }
       </div>
 
       <div class="modal__actions">

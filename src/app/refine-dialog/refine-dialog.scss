@@ -44,7 +44,17 @@
   }
 
   &__move-name {
+    flex: 1;
     color: $text-dim;
+  }
+
+  &__move-tier {
+    align-self: center;
+    font-size: 0.6rem;
+    letter-spacing: 0.12em;
+    color: rgba($gold, 0.55);
+    text-transform: uppercase;
+    white-space: nowrap;
   }
 
   &__move-ranks {

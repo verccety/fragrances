@@ -1,3 +1,6 @@
+@if (tierLabel(); as label) {
+  <span class="frag-row__tier-label">{{ label }}</span>
+}
 <span class="frag-row__handle" cdkDragHandle>⠿</span>
 <span class="frag-row__rank">{{ rank() }}</span>
 @if (editing()) {

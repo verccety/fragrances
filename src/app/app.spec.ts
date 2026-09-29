@@ -586,6 +586,90 @@ describe('App', () => {
     });
   });
 
+  describe('tiers', () => {
+    const numbered = (count: number): FragranceData[] =>
+      Array.from({ length: count }, (_, i) => ({
+        name: `Fragrance ${i + 1}`,
+        status: null,
+        grandmaStatus: 'unknown',
+      }));
+    const labels = (page: Page) =>
+      page.rows().flatMap((row, index) => {
+        const label = row.querySelector('.frag-row__tier-label')?.textContent?.trim();
+        return label ? [[index + 1, label]] : [];
+      });
+    const tierOf = (page: Page, name: string) => page.row(name).getAttribute('data-tier');
+
+    it('marks every row with its tier and heads each tier in the full list', async () => {
+      seed(numbered(55));
+      const page = await render();
+
+      expect(labels(page)).toEqual([
+        [1, 'Top 10'],
+        [11, 'Top 25'],
+        [26, 'Top 50'],
+        [51, 'The rest'],
+      ]);
+      const boundaries = ['Fragrance 10', 'Fragrance 11', 'Fragrance 50', 'Fragrance 51'];
+      expect(boundaries.map((name) => tierOf(page, name))).toEqual([
+        'top10',
+        'top25',
+        'top50',
+        'rest',
+      ]);
+    });
+
+    it('keeps tiers tied to positions when fragrances move', async () => {
+      seed(numbered(12));
+      const page = await render();
+
+      await page.click(page.queryAll('.frag-row__arrow', page.row('Fragrance 11'))[0]);
+
+      expect(tierOf(page, 'Fragrance 11')).toBe('top10');
+      expect(tierOf(page, 'Fragrance 10')).toBe('top25');
+      expect(labels(page)).toEqual([
+        [1, 'Top 10'],
+        [11, 'Top 25'],
+      ]);
+    });
+
+    it('keeps the stripes but hides the headings while searching', async () => {
+      seed(numbered(55));
+      const page = await render();
+
+      await page.search('Fragrance 3');
+
+      expect(labels(page)).toEqual([]);
+      expect(tierOf(page, 'Fragrance 3')).toBe('top10');
+      expect(tierOf(page, 'Fragrance 30')).toBe('top50');
+    });
+
+    it('shows the tier change when a found place crosses a tier boundary', async () => {
+      seed(numbered(12));
+      const page = await render();
+      await page.click(page.query('.frag-row__place', page.row('Fragrance 12')));
+
+      while (page.exists('.placement__card--placed')) {
+        await page.click('.placement__card--placed');
+      }
+
+      expect(page.query('.placement__result-move').textContent!.trim()).toBe('#12 → #1');
+      expect(page.query('.placement__result-tier').textContent!.trim()).toBe('Top 25 → Top 10');
+    });
+
+    it('shows no tier change for a move within one tier', async () => {
+      seed(numbered(12));
+      const page = await render();
+      await page.click(page.query('.frag-row__place', page.row('Fragrance 12')));
+
+      while (page.exists('.placement__card--opponent')) {
+        await page.click('.placement__card--opponent');
+      }
+
+      expect(page.exists('.placement__result-tier')).toBe(false);
+    });
+  });
+
   describe('finding a place', () => {
     beforeEach(() => seed(SAMPLE));
 

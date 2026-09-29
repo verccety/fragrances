@@ -7,6 +7,7 @@ import {
   PERSONAL_STATUSES,
 } from './fragrance/fragrance.model';
 import { formatList } from './fragrance/fragrance.format';
+import { tierForRank, tierStartingAt } from './fragrance/fragrance.tiers';
 import { backupFileName, createBackup } from './fragrance/fragrance.backup';
 import { FragranceStore } from './fragrance/fragrance.store';
 import { ComparisonLog } from './fragrance/fragrance.comparison-log';
@@ -43,12 +44,23 @@ export class App {
   protected readonly showRefine = signal(false);
   protected readonly copied = signal(false);
 
-  /** Items matching the search, each with its rank in the full list. */
+  /**
+   * Items matching the search, each with its rank and tier in the full list.
+   * Tier headings are only shown for the full list, where tiers are contiguous.
+   */
   protected readonly visibleItems = computed(() => {
     const q = this.searchQuery().toLowerCase();
     return this.store
       .items()
-      .map((item, index) => ({ item, rank: index + 1 }))
+      .map((item, index) => {
+        const rank = index + 1;
+        return {
+          item,
+          rank,
+          tier: tierForRank(rank).id,
+          tierLabel: q ? null : (tierStartingAt(rank)?.label ?? null),
+        };
+      })
       .filter(({ item }) => item.name.toLowerCase().includes(q));
   });
 
