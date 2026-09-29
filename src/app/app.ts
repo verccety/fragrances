@@ -52,7 +52,9 @@ export class App {
 
     // `autofocus` is ignored for inputs rendered after page load, so focus manually.
     afterRenderEffect(() => {
-      this.renameInput()?.nativeElement.select();
+      const input = this.renameInput()?.nativeElement;
+      input?.focus();
+      input?.select();
     });
   }
 
