@@ -1,9 +1,9 @@
-﻿import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { CdkDragDrop } from '@angular/cdk/drag-drop';
 import { App } from './app';
-import { Fragrance, FragranceData } from './fragrance.model';
-import { formatList } from './fragrance.format';
-import { INITIAL_FRAGRANCES } from './fragrance.data';
+import { Fragrance, FragranceData } from './fragrance/fragrance.model';
+import { formatList } from './fragrance/fragrance.format';
+import { INITIAL_FRAGRANCES } from './fragrance/fragrance.data';
 
 const STORAGE_KEY = 'fragrance-app.items.v1';
 
@@ -133,6 +133,13 @@ async function render(): Promise<Page> {
   return new Page(fixture);
 }
 
+/** Simulates a page reload: a fresh injector, so only localStorage survives. */
+async function reload(): Promise<Page> {
+  TestBed.resetTestingModule();
+  TestBed.configureTestingModule({ imports: [App] });
+  return render();
+}
+
 describe('App', () => {
   beforeEach(() => {
     localStorage.clear();
@@ -202,7 +209,7 @@ describe('App', () => {
 
     it('gives lists saved without ids a unique id per fragrance and keeps them', async () => {
       seed(SAMPLE);
-      const page = await render();
+      await render();
       const savedIds = () =>
         (JSON.parse(localStorage.getItem(STORAGE_KEY)!) as Fragrance[]).map((f) => f.id);
 
@@ -210,8 +217,7 @@ describe('App', () => {
       expect(ids.every((id) => typeof id === 'string' && id.length > 0)).toBe(true);
       expect(new Set(ids).size).toBe(SAMPLE.length);
 
-      page.fixture.destroy();
-      await render();
+      await reload();
 
       expect(savedIds()).toEqual(ids);
     });
@@ -220,9 +226,8 @@ describe('App', () => {
       seed(SAMPLE);
       const page = await render();
       await page.click(page.query('.frag-row__status', page.row('Xerjoff Naxos')));
-      page.fixture.destroy();
 
-      const reloaded = await render();
+      const reloaded = await reload();
 
       expect(reloaded.personal(reloaded.row('Xerjoff Naxos'))).toBe('✅');
     });

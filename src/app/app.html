@@ -7,9 +7,9 @@
 
   <!-- Stats bar -->
   <div class="stats">
-    <span class="stats__item">Total: {{ stats().total }}</span>
-    <span class="stats__item">✅ Enjoyed: {{ stats().enjoy }}</span>
-    <span class="stats__item">🚩 Disliked: {{ stats().dislike }}</span>
+    <span class="stats__item">Total: {{ store.stats().total }}</span>
+    <span class="stats__item">✅ Enjoyed: {{ store.stats().enjoy }}</span>
+    <span class="stats__item">🚩 Disliked: {{ store.stats().dislike }}</span>
   </div>
 
   <!-- Controls -->
@@ -147,7 +147,7 @@
     } @else {
       <div
         cdkDropList
-        [cdkDropListData]="items()"
+        [cdkDropListData]="store.items()"
         (cdkDropListDropped)="onDrop($event)"
         class="drop-zone"
       >

@@ -3,39 +3,31 @@ import {
   ElementRef,
   afterRenderEffect,
   computed,
-  effect,
+  inject,
   signal,
   viewChild,
 } from '@angular/core';
-import { CdkDragDrop, DragDropModule, moveItemInArray } from '@angular/cdk/drag-drop';
-import { FormsModule } from '@angular/forms';
+import { CdkDragDrop, DragDropModule } from '@angular/cdk/drag-drop';
 import {
   Fragrance,
   FragranceData,
   FragranceStatus,
   GrandmaStatus,
-  createFragrance,
   grandmaStatus,
-  nextGrandmaStatus,
-  nextStatus,
   personalStatus,
-  toFragranceStatus,
-  toGrandmaStatus,
-} from './fragrance.model';
-import { formatList, parseList } from './fragrance.format';
-import { INITIAL_FRAGRANCES } from './fragrance.data';
+} from './fragrance/fragrance.model';
+import { formatList, parseList } from './fragrance/fragrance.format';
+import { FragranceStore } from './fragrance/fragrance.store';
 
 @Component({
   selector: 'app-root',
-  standalone: true,
-  imports: [DragDropModule, FormsModule],
+  imports: [DragDropModule],
   templateUrl: './app.html',
   styleUrl: './app.scss',
 })
 export class App {
-  private readonly storageKey = 'fragrance-app.items.v1';
+  protected readonly store = inject(FragranceStore);
 
-  public items = signal<Fragrance[]>(this.loadItems());
   public searchQuery = signal('');
   public newName = signal('');
   public editingId = signal<string | null>(null);
@@ -48,10 +40,6 @@ export class App {
   private readonly renameInput = viewChild<ElementRef<HTMLInputElement>>('renameInput');
 
   constructor() {
-    effect(() => {
-      this.saveItems(this.items());
-    });
-
     // `autofocus` is ignored for inputs rendered after page load, so focus manually.
     afterRenderEffect(() => {
       const input = this.renameInput()?.nativeElement;
@@ -60,42 +48,32 @@ export class App {
     });
   }
 
-  public stats = computed(() => {
-    const all = this.items();
-    return {
-      total: all.length,
-      enjoy: all.filter((f) => f.status === 'enjoy').length,
-      dislike: all.filter((f) => f.status === 'dislike').length,
-    };
-  });
-
   /** Items matching the search, each with its rank in the full list. */
   public visibleItems = computed(() => {
     const q = this.searchQuery().toLowerCase();
-    return this.items()
+    return this.store
+      .items()
       .map((item, index) => ({ item, rank: index + 1 }))
       .filter(({ item }) => item.name.toLowerCase().includes(q));
   });
 
-  public formatted = computed(() => formatList(this.items()));
+  public formatted = computed(() => formatList(this.store.items()));
 
   public isSearchActive = computed(() => this.searchQuery().length > 0);
   public isRenaming = computed(() => this.editingId() !== null);
 
-  /** Dragging is only enabled for the unfiltered list, so drop indexes match `items`. */
+  /** Dragging is only enabled for the unfiltered list, so drop indexes match the store. */
   public onDrop(event: CdkDragDrop<Fragrance[]>) {
     if (this.isRenaming()) { return; }
-    const current = [...this.items()];
-    moveItemInArray(current, event.previousIndex, event.currentIndex);
-    this.items.set(current);
+    this.store.move(event.previousIndex, event.currentIndex);
   }
 
   public toggleStatus(id: string) {
-    this.updateItem(id, (item) => ({ ...item, status: nextStatus(item.status) }));
+    this.store.toggleStatus(id);
   }
 
   public toggleGrandmaStatus(id: string): void {
-    this.updateItem(id, (item) => ({ ...item, grandmaStatus: nextGrandmaStatus(item.grandmaStatus) }));
+    this.store.toggleGrandmaStatus(id);
   }
 
   public getStatusIcon(status: FragranceStatus): string {
@@ -111,25 +89,22 @@ export class App {
   }
 
   public moveUp(id: string) {
-    this.moveBy(id, -1);
+    if (this.isRenaming()) { return; }
+    this.store.moveBy(id, -1);
   }
 
   public moveDown(id: string) {
-    this.moveBy(id, 1);
+    if (this.isRenaming()) { return; }
+    this.store.moveBy(id, 1);
   }
 
   public removeItem(id: string) {
     if (this.isRenaming()) { return; }
-    this.items.update((items) => items.filter((item) => item.id !== id));
+    this.store.remove(id);
   }
 
   public addItem() {
-    const name = this.newName().trim();
-    if (!name) { return; }
-    this.items.update((items) => [
-      ...items,
-      createFragrance({ name, status: null, grandmaStatus: 'unknown' }),
-    ]);
+    this.store.add(this.newName());
     this.newName.set('');
   }
 
@@ -149,12 +124,9 @@ export class App {
   }
 
   public saveRename(id: string) {
-    if (!this.isEditing(id)) { return; }
+    if (!this.isEditing(id) || !this.editingName().trim()) { return; }
 
-    const name = this.editingName().trim();
-    if (!name) { return; }
-
-    this.updateItem(id, (item) => ({ ...item, name }));
+    this.store.rename(id, this.editingName());
     this.cancelRename();
   }
 
@@ -197,67 +169,8 @@ export class App {
     const parsed = this.importPreview();
     if (parsed.length > 0) {
       this.cancelRename();
-      this.items.set(parsed.map((data) => createFragrance(data)));
+      this.store.replaceAll(parsed);
     }
     this.showImportModal.set(false);
-  }
-
-  private updateItem(id: string, change: (item: Fragrance) => Fragrance): void {
-    this.items.update((items) => items.map((item) => (item.id === id ? change(item) : item)));
-  }
-
-  private moveBy(id: string, offset: number): void {
-    if (this.isRenaming()) { return; }
-    const current = [...this.items()];
-    const from = current.findIndex((item) => item.id === id);
-    const to = from + offset;
-    if (from < 0 || to < 0 || to >= current.length) { return; }
-    moveItemInArray(current, from, to);
-    this.items.set(current);
-  }
-
-  private loadItems(): Fragrance[] {
-    const defaults = () => INITIAL_FRAGRANCES.map((data) => createFragrance(data));
-    if (typeof window === 'undefined') { return defaults(); }
-
-    try {
-      const raw = window.localStorage.getItem(this.storageKey);
-      if (!raw) { return defaults(); }
-
-      const parsed: unknown = JSON.parse(raw);
-      if (!Array.isArray(parsed)) { return defaults(); }
-
-      const items = parsed
-        .filter(
-          (item): item is Record<string, unknown> => item !== null && typeof item === 'object',
-        )
-        .map((item) =>
-          createFragrance(
-            {
-              name: String(item['name'] ?? '').trim(),
-              status: toFragranceStatus(item['status']),
-              grandmaStatus: toGrandmaStatus(item['grandmaStatus']),
-            },
-            // Lists saved before ids existed get one on first load.
-            typeof item['id'] === 'string' && item['id'] ? item['id'] : undefined,
-          ),
-        )
-        .filter((item) => item.name.length > 0);
-
-      // An empty saved list is valid; only fall back when every stored entry was unreadable.
-      return items.length > 0 || parsed.length === 0 ? items : defaults();
-    } catch {
-      return defaults();
-    }
-  }
-
-  private saveItems(items: Fragrance[]): void {
-    if (typeof window === 'undefined') { return; }
-
-    try {
-      window.localStorage.setItem(this.storageKey, JSON.stringify(items));
-    } catch {
-      // Ignore quota/security errors and keep app functional.
-    }
   }
 }
