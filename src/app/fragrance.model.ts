@@ -1,5 +1,28 @@
-export type FragranceStatus = 'enjoy' | 'dislike' | null;
-export type GrandmaStatus = 'unknown' | 'disliked' | 'liked' | 'indifferent';
+export interface StatusOption<T> {
+  value: T;
+  icon: string;
+  label: string;
+  /** What the icon means in the exported list legend. */
+  legend: string;
+}
+
+/** Personal ratings, in the order a click cycles through them. */
+export const PERSONAL_STATUSES = [
+  { value: null, icon: '○', label: 'None', legend: 'Personal status not set' },
+  { value: 'enjoy', icon: '✅', label: 'Enjoy', legend: 'Personally enjoyed' },
+  { value: 'dislike', icon: '🚩', label: 'Dislike', legend: 'Personally disliked' },
+] as const satisfies readonly StatusOption<string | null>[];
+
+/** Grandma's verdicts, in the order a click cycles through them. */
+export const GRANDMA_STATUSES = [
+  { value: 'unknown', icon: '❔', label: 'Unknown', legend: "Grandma's position is unknown" },
+  { value: 'disliked', icon: '👎', label: 'Disliked', legend: 'Grandma disliked it' },
+  { value: 'liked', icon: '👍', label: 'Liked', legend: 'Grandma liked and approved it' },
+  { value: 'indifferent', icon: '➖', label: 'Indifferent', legend: 'Grandma was indifferent' },
+] as const satisfies readonly StatusOption<string>[];
+
+export type FragranceStatus = (typeof PERSONAL_STATUSES)[number]['value'];
+export type GrandmaStatus = (typeof GRANDMA_STATUSES)[number]['value'];
 
 export interface Fragrance {
   name: string;
@@ -7,71 +30,41 @@ export interface Fragrance {
   grandmaStatus: GrandmaStatus;
 }
 
-export function nextStatus(current: FragranceStatus): FragranceStatus {
-  if (current === null) {return 'enjoy';}
-  if (current === 'enjoy') {return 'dislike';}
-  return null;
+export function personalStatus(status: FragranceStatus): StatusOption<FragranceStatus> {
+  return optionFor(PERSONAL_STATUSES, status);
 }
 
-export function statusIcon(status: FragranceStatus): string {
-  if (status === 'enjoy') {return '✅';}
-  if (status === 'dislike') {return '🚩';}
-  return '';
+export function grandmaStatus(status: GrandmaStatus): StatusOption<GrandmaStatus> {
+  return optionFor(GRANDMA_STATUSES, status);
+}
+
+export function nextStatus(current: FragranceStatus): FragranceStatus {
+  return nextIn(PERSONAL_STATUSES, current);
 }
 
 export function nextGrandmaStatus(current: GrandmaStatus): GrandmaStatus {
-  if (current === 'unknown') {return 'disliked';}
-  if (current === 'disliked') {return 'liked';}
-  if (current === 'liked') {return 'indifferent';}
-  return 'unknown';
+  return nextIn(GRANDMA_STATUSES, current);
 }
 
-export function grandmaStatusIcon(status: GrandmaStatus): string {
-  if (status === 'disliked') {return '👎';}
-  if (status === 'liked') {return '👍';}
-  if (status === 'indifferent') {return '➖';}
-  return '❔';
+/** Reads a status from untrusted data, falling back to "not set". */
+export function toFragranceStatus(value: unknown): FragranceStatus {
+  return valueOrDefault(PERSONAL_STATUSES, value);
 }
 
-export function grandmaStatusLabel(status: GrandmaStatus): string {
-  if (status === 'disliked') {return 'Disliked';}
-  if (status === 'liked') {return 'Liked';}
-  if (status === 'indifferent') {return 'Indifferent';}
-  return 'Unknown';
+/** Reads a grandma status from untrusted data, falling back to "unknown". */
+export function toGrandmaStatus(value: unknown): GrandmaStatus {
+  return valueOrDefault(GRANDMA_STATUSES, value);
 }
 
-export function formatList(items: Fragrance[]): string {
-  const fragrances = items
-    .map((it, i) => {
-      const icon = statusIcon(it.status) || '○';
-      const grandmaIcon = grandmaStatusIcon(it.grandmaStatus);
-      return `${i + 1}) ${it.name} (${icon}) [Grandma: ${grandmaIcon}]`;
-    })
-    .join('\n');
-
-  return `${fragrances}\n\nLegend:\n○ = Personal status not set\n✅ = Personally enjoyed\n🚩 = Personally disliked\n❔ = Grandma's position is unknown\n👎 = Grandma disliked it\n👍 = Grandma liked and approved it\n➖ = Grandma was indifferent`;
+function optionFor<T>(options: readonly StatusOption<T>[], value: T): StatusOption<T> {
+  return options.find((option) => option.value === value) ?? options[0];
 }
 
-export function parseList(text: string): Fragrance[] {
-  const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
-  const result: Fragrance[] = [];
+function nextIn<T>(options: readonly StatusOption<T>[], value: T): T {
+  const index = options.findIndex((option) => option.value === value);
+  return options[(index + 1) % options.length].value;
+}
 
-  for (const line of lines) {
-    const match = line.match(
-      /^\d+\)\s+(.+?)(?:\s+\((✅|🚩|○)\))?(?:\s+\[Grandma:\s*(❔|👎|👍|➖)\])?$/,
-    );
-    if (match) {
-      const name = match[1].trim();
-      let status: FragranceStatus = null;
-      let grandmaStatus: GrandmaStatus = 'unknown';
-      if (match[2] === '✅') {status = 'enjoy';}
-      else if (match[2] === '🚩') {status = 'dislike';}
-      if (match[3] === '👎') {grandmaStatus = 'disliked';}
-      else if (match[3] === '👍') {grandmaStatus = 'liked';}
-      else if (match[3] === '➖') {grandmaStatus = 'indifferent';}
-      result.push({ name, status, grandmaStatus });
-    }
-  }
-
-  return result;
+function valueOrDefault<T>(options: readonly StatusOption<T>[], value: unknown): T {
+  return options.find((option) => option.value === value)?.value ?? options[0].value;
 }

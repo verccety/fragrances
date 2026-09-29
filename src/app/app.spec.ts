@@ -1,7 +1,8 @@
 ﻿import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { CdkDragDrop } from '@angular/cdk/drag-drop';
 import { App } from './app';
-import { Fragrance, formatList } from './fragrance.model';
+import { Fragrance } from './fragrance.model';
+import { formatList } from './fragrance.format';
 import { INITIAL_FRAGRANCES } from './fragrance.data';
 
 const STORAGE_KEY = 'fragrance-app.items.v1';

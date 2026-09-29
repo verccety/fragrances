@@ -13,14 +13,14 @@ import {
   Fragrance,
   FragranceStatus,
   GrandmaStatus,
-  grandmaStatusIcon,
-  grandmaStatusLabel,
+  grandmaStatus,
   nextGrandmaStatus,
   nextStatus,
-  statusIcon,
-  formatList,
-  parseList,
+  personalStatus,
+  toFragranceStatus,
+  toGrandmaStatus,
 } from './fragrance.model';
+import { formatList, parseList } from './fragrance.format';
 import { INITIAL_FRAGRANCES } from './fragrance.data';
 
 @Component({
@@ -108,15 +108,15 @@ export class App {
   }
 
   public getStatusIcon(status: FragranceStatus): string {
-    return statusIcon(status);
+    return personalStatus(status).icon;
   }
 
   public getGrandmaStatusIcon(status: GrandmaStatus): string {
-    return grandmaStatusIcon(status);
+    return grandmaStatus(status).icon;
   }
 
   public getGrandmaStatusLabel(status: GrandmaStatus): string {
-    return grandmaStatusLabel(status);
+    return grandmaStatus(status).label;
   }
 
   public moveUp(realIndex: number) {
@@ -239,8 +239,8 @@ export class App {
         )
         .map((item) => ({
           name: String(item.name ?? '').trim(),
-          status: this.normalizeStatus(item.status),
-          grandmaStatus: this.normalizeGrandmaStatus(item.grandmaStatus),
+          status: toFragranceStatus(item.status),
+          grandmaStatus: toGrandmaStatus(item.grandmaStatus),
         }))
         .filter((item) => item.name.length > 0);
 
@@ -259,21 +259,5 @@ export class App {
     } catch {
       // Ignore quota/security errors and keep app functional.
     }
-  }
-
-  private normalizeStatus(status: unknown): FragranceStatus {
-    if (status === 'enjoy' || status === 'dislike' || status === null) { return status; }
-    return null;
-  }
-
-  private normalizeGrandmaStatus(status: unknown): GrandmaStatus {
-    if (
-      status === 'disliked' ||
-      status === 'liked' ||
-      status === 'indifferent'
-    ) {
-      return status;
-    }
-    return 'unknown';
   }
 }

@@ -1,4 +1,5 @@
-import { Fragrance, formatList, parseList } from './fragrance.model';
+import { Fragrance } from './fragrance.model';
+import { formatList, parseList } from './fragrance.format';
 import { INITIAL_FRAGRANCES } from './fragrance.data';
 
 const LEGEND = [
