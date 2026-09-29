@@ -1,55 +1,35 @@
-import {
-  Component,
-  ElementRef,
-  afterRenderEffect,
-  computed,
-  inject,
-  signal,
-  viewChild,
-} from '@angular/core';
-import { CdkDragDrop, DragDropModule } from '@angular/cdk/drag-drop';
+import { Component, computed, inject, signal } from '@angular/core';
+import { CdkDrag, CdkDragDrop, CdkDragPlaceholder, CdkDropList } from '@angular/cdk/drag-drop';
 import {
   Fragrance,
   FragranceData,
-  FragranceStatus,
-  GrandmaStatus,
-  grandmaStatus,
-  personalStatus,
+  GRANDMA_STATUSES,
+  PERSONAL_STATUSES,
 } from './fragrance/fragrance.model';
-import { formatList, parseList } from './fragrance/fragrance.format';
+import { formatList } from './fragrance/fragrance.format';
 import { FragranceStore } from './fragrance/fragrance.store';
+import { FragranceRow } from './fragrance-row/fragrance-row';
+import { ImportDialog } from './import-dialog/import-dialog';
 
 @Component({
   selector: 'app-root',
-  imports: [DragDropModule],
+  imports: [CdkDropList, CdkDrag, CdkDragPlaceholder, FragranceRow, ImportDialog],
   templateUrl: './app.html',
   styleUrl: './app.scss',
 })
 export class App {
   protected readonly store = inject(FragranceStore);
+  protected readonly personalStatuses = PERSONAL_STATUSES;
+  protected readonly grandmaStatuses = GRANDMA_STATUSES;
 
-  public searchQuery = signal('');
-  public newName = signal('');
-  public editingId = signal<string | null>(null);
-  public editingName = signal('');
-  public showImportModal = signal(false);
-  public importText = signal('');
-  public importPreview = signal<FragranceData[]>([]);
-  public copied = signal(false);
-
-  private readonly renameInput = viewChild<ElementRef<HTMLInputElement>>('renameInput');
-
-  constructor() {
-    // `autofocus` is ignored for inputs rendered after page load, so focus manually.
-    afterRenderEffect(() => {
-      const input = this.renameInput()?.nativeElement;
-      input?.focus();
-      input?.select();
-    });
-  }
+  protected readonly searchQuery = signal('');
+  protected readonly newName = signal('');
+  protected readonly editingId = signal<string | null>(null);
+  protected readonly showImport = signal(false);
+  protected readonly copied = signal(false);
 
   /** Items matching the search, each with its rank in the full list. */
-  public visibleItems = computed(() => {
+  protected readonly visibleItems = computed(() => {
     const q = this.searchQuery().toLowerCase();
     return this.store
       .items()
@@ -57,120 +37,47 @@ export class App {
       .filter(({ item }) => item.name.toLowerCase().includes(q));
   });
 
-  public formatted = computed(() => formatList(this.store.items()));
+  protected readonly formatted = computed(() => formatList(this.store.items()));
+  protected readonly isRenaming = computed(() => this.editingId() !== null);
+  /** Drag indexes only match the store when the full list is shown. */
+  protected readonly canDrag = computed(() => !this.searchQuery() && !this.isRenaming());
 
-  public isSearchActive = computed(() => this.searchQuery().length > 0);
-  public isRenaming = computed(() => this.editingId() !== null);
-
-  /** Dragging is only enabled for the unfiltered list, so drop indexes match the store. */
-  public onDrop(event: CdkDragDrop<Fragrance[]>) {
-    if (this.isRenaming()) { return; }
+  public onDrop(event: CdkDragDrop<Fragrance[]>): void {
     this.store.move(event.previousIndex, event.currentIndex);
   }
 
-  public toggleStatus(id: string) {
-    this.store.toggleStatus(id);
-  }
-
-  public toggleGrandmaStatus(id: string): void {
-    this.store.toggleGrandmaStatus(id);
-  }
-
-  public getStatusIcon(status: FragranceStatus): string {
-    return personalStatus(status).icon;
-  }
-
-  public getGrandmaStatusIcon(status: GrandmaStatus): string {
-    return grandmaStatus(status).icon;
-  }
-
-  public getGrandmaStatusLabel(status: GrandmaStatus): string {
-    return grandmaStatus(status).label;
-  }
-
-  public moveUp(id: string) {
-    if (this.isRenaming()) { return; }
-    this.store.moveBy(id, -1);
-  }
-
-  public moveDown(id: string) {
-    if (this.isRenaming()) { return; }
-    this.store.moveBy(id, 1);
-  }
-
-  public removeItem(id: string) {
-    if (this.isRenaming()) { return; }
-    this.store.remove(id);
-  }
-
-  public addItem() {
+  protected addItem(): void {
     this.store.add(this.newName());
     this.newName.set('');
   }
 
-  public addOnEnter(event: KeyboardEvent) {
-    if (event.key === 'Enter') { this.addItem(); }
+  protected startRename(id: string): void {
+    if (!this.isRenaming()) { this.editingId.set(id); }
   }
 
-  public isEditing(id: string): boolean {
-    return this.editingId() === id;
-  }
-
-  public startRename(item: Fragrance) {
-    if (this.isRenaming()) { return; }
-
-    this.editingId.set(item.id);
-    this.editingName.set(item.name);
-  }
-
-  public saveRename(id: string) {
-    if (!this.isEditing(id) || !this.editingName().trim()) { return; }
-
-    this.store.rename(id, this.editingName());
+  protected rename(id: string, name: string): void {
+    this.store.rename(id, name);
     this.cancelRename();
   }
 
-  public cancelRename() {
+  protected cancelRename(): void {
     this.editingId.set(null);
-    this.editingName.set('');
   }
 
-  public handleRenameKeydown(event: KeyboardEvent, id: string) {
-    if (event.key === 'Enter') {
-      event.preventDefault();
-      this.saveRename(id);
-    }
-  }
-
-  public copyToClipboard() {
+  protected copyToClipboard(): void {
     navigator.clipboard.writeText(this.formatted()).then(() => {
       this.copied.set(true);
       setTimeout(() => this.copied.set(false), 2000);
     });
   }
 
-  public openImport() {
+  protected openImport(): void {
     this.cancelRename();
-    this.importText.set('');
-    this.importPreview.set([]);
-    this.showImportModal.set(true);
+    this.showImport.set(true);
   }
 
-  public closeImport() {
-    this.showImportModal.set(false);
-  }
-
-  public onImportTextChange(text: string) {
-    this.importText.set(text);
-    this.importPreview.set(parseList(text));
-  }
-
-  public confirmImport() {
-    const parsed = this.importPreview();
-    if (parsed.length > 0) {
-      this.cancelRename();
-      this.store.replaceAll(parsed);
-    }
-    this.showImportModal.set(false);
+  protected importList(items: FragranceData[]): void {
+    this.store.replaceAll(items);
+    this.showImport.set(false);
   }
 }

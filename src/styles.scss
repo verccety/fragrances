@@ -1,3 +1,5 @@
+@use 'theme' as *;
+
 *, *::before, *::after {
   box-sizing: border-box;
   margin: 0;
@@ -31,4 +33,74 @@ body {
 
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(192, 170, 140, 0.3);
+}
+
+// ── Buttons ────────────────────────────────────────────
+.btn {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+
+  &--add,
+  &--import {
+    background: $gold-faint;
+    border: 1px solid rgba($gold, 0.25);
+    color: rgba($gold, 0.85);
+    padding: 10px 18px;
+
+    &:hover {
+      background: rgba($gold, 0.2);
+    }
+  }
+
+  &--copy {
+    margin-top: 10px;
+    background: rgba($gold, 0.15);
+    border: 1px solid rgba($gold, 0.3);
+    color: rgba($gold, 0.85);
+    padding: 11px 28px;
+    font-size: 0.8rem;
+    letter-spacing: 0.1em;
+
+    &:hover {
+      background: rgba($gold, 0.25);
+    }
+  }
+
+  &--copied {
+    background: rgba(120, 170, 120, 0.2) !important;
+    border-color: rgba(120, 170, 120, 0.4) !important;
+    color: #a0c8a0 !important;
+  }
+
+  &--cancel {
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba($gold, 0.15);
+    color: $gold-dim;
+    padding: 10px 22px;
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.07);
+    }
+  }
+
+  &--confirm {
+    background: rgba($gold, 0.15);
+    border: 1px solid rgba($gold, 0.35);
+    color: rgba($gold, 0.9);
+    padding: 10px 22px;
+
+    &:hover:not(:disabled) {
+      background: rgba($gold, 0.25);
+    }
+
+    &:disabled {
+      opacity: 0.35;
+      cursor: not-allowed;
+    }
+  }
 }

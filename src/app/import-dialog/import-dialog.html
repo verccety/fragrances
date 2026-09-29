@@ -1,0 +1,49 @@
+<div class="modal-backdrop" (click)="dismissed.emit()">
+  <div class="modal" (click)="$event.stopPropagation()">
+    <div class="modal__header">
+      <h2 class="modal__title">Import Fragrances</h2>
+      <button class="modal__close" (click)="dismissed.emit()">✕</button>
+    </div>
+    <p class="modal__hint">
+      Paste your formatted list below. Expected format:<br />
+      <code>1) Fragrance Name (✅) [Grandma: 👍]</code>
+    </p>
+    <textarea
+      class="modal__textarea"
+      placeholder="Paste your fragrance list here..."
+      [value]="text()"
+      (input)="text.set($any($event.target).value)"
+    ></textarea>
+
+    @if (parsed().length > 0) {
+      <div class="modal__preview">
+        <span class="modal__preview-label">
+          Detected <strong>{{ parsed().length }}</strong> fragrances
+        </span>
+        <div class="modal__preview-list">
+          @for (item of preview(); track $index) {
+            <div class="modal__preview-item">
+              {{ $index + 1 }}) {{ item.name }}
+              @if (item.status) {
+                <span>{{ personalStatus(item.status).icon }}</span>
+              }
+              <span>{{ grandmaStatus(item.grandmaStatus).icon }}</span>
+            </div>
+          }
+          @if (hiddenCount() > 0) {
+            <div class="modal__preview-item modal__preview-item--more">
+              ...and {{ hiddenCount() }} more
+            </div>
+          }
+        </div>
+      </div>
+    }
+
+    <div class="modal__actions">
+      <button class="btn btn--cancel" (click)="dismissed.emit()">Cancel</button>
+      <button class="btn btn--confirm" [disabled]="parsed().length === 0" (click)="confirm()">
+        Replace List ({{ parsed().length }} items)
+      </button>
+    </div>
+  </div>
+</div>

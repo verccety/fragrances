@@ -20,7 +20,7 @@
       placeholder="Add new fragrance..."
       [value]="newName()"
       (input)="newName.set($any($event.target).value)"
-      (keydown)="addOnEnter($event)"
+      (keydown.enter)="addItem()"
     />
     <button class="btn btn--add" (click)="addItem()">+ Add</button>
     <button class="btn btn--import" (click)="openImport()">↓ Import</button>
@@ -39,288 +39,69 @@
 
   <!-- Legend -->
   <div class="legend">
-    <span>Personal: <strong>○</strong> None → <strong>✅</strong> Enjoy → <strong>🚩</strong> Dislike</span>
-    <span>Grandma approved: <strong>❔</strong> Unknown → <strong>👎</strong> Disliked → <strong>👍</strong> Liked → <strong>➖</strong> Indifferent</span>
+    <span>
+      Personal:
+      @for (option of personalStatuses; track option.value) {
+        @if (!$first) { → }
+        <strong>{{ option.icon }}</strong> {{ option.label }}
+      }
+    </span>
+    <span>
+      Grandma approved:
+      @for (option of grandmaStatuses; track option.value) {
+        @if (!$first) { → }
+        <strong>{{ option.icon }}</strong> {{ option.label }}
+      }
+    </span>
   </div>
 
-  <!-- Drag-drop list -->
+  <!-- Ranked list: drag & drop is disabled while searching or renaming -->
   <div class="list-container">
     <div class="list-header">
       <span class="list-header__name">Fragrance</span>
       <span class="list-header__personal">Personal</span>
-      <span class="list-header__grandma">Grandma<br>approved</span>
+      <span class="list-header__grandma">Grandma<br />approved</span>
       <span class="list-header__actions"></span>
     </div>
-    @if (isSearchActive()) {
-      <!-- No drag reorder during search, show flat list -->
+    <div
+      cdkDropList
+      [cdkDropListData]="store.items()"
+      [cdkDropListDisabled]="!canDrag()"
+      (cdkDropListDropped)="onDrop($event)"
+      class="drop-zone"
+    >
       @for (entry of visibleItems(); track entry.item.id) {
-        <div class="frag-row">
-          <span class="frag-row__handle">⠿</span>
-          <span class="frag-row__rank">{{ entry.rank }}</span>
-          @if (isEditing(entry.item.id)) {
-            <input
-              class="frag-row__input"
-              type="text"
-              placeholder="Rename fragrance..."
-              [value]="editingName()"
-              (input)="editingName.set($any($event.target).value)"
-              (keydown)="handleRenameKeydown($event, entry.item.id)"
-              #renameInput
-            />
-          } @else {
-            <span
-              class="frag-row__name"
-              title="Double-click to rename"
-              (dblclick)="startRename(entry.item)"
-            >
-              {{ entry.item.name }}
-            </span>
-          }
-          <button
-            class="frag-row__status"
-            [class.frag-row__status--empty]="!entry.item.status"
-            (click)="toggleStatus(entry.item.id)"
-            title="Toggle status"
-          >
-            {{ entry.item.status ? getStatusIcon(entry.item.status) : '○' }}
-          </button>
-          <button
-            class="frag-row__grandma-status"
-            (click)="toggleGrandmaStatus(entry.item.id)"
-            [attr.aria-label]="'Grandma approved: ' + getGrandmaStatusLabel(entry.item.grandmaStatus)"
-            [title]="'Grandma approved: ' + getGrandmaStatusLabel(entry.item.grandmaStatus)"
-          >
-            <span aria-hidden="true">{{ getGrandmaStatusIcon(entry.item.grandmaStatus) }}</span>
-            <span class="frag-row__grandma-label">
-              {{ getGrandmaStatusLabel(entry.item.grandmaStatus) }}
-            </span>
-          </button>
-          <div class="frag-row__arrows">
-            <button
-              class="frag-row__arrow"
-              [disabled]="isRenaming()"
-              (click)="moveUp(entry.item.id)"
-              title="Move up"
-            >
-              ▲
-            </button>
-            <button
-              class="frag-row__arrow"
-              [disabled]="isRenaming()"
-              (click)="moveDown(entry.item.id)"
-              title="Move down"
-            >
-              ▼
-            </button>
-          </div>
-          @if (isEditing(entry.item.id)) {
-            <div class="frag-row__edit-actions">
-              <button
-                class="frag-row__action frag-row__action--save"
-                [disabled]="editingName().trim().length === 0"
-                (click)="saveRename(entry.item.id)"
-              >
-                Save
-              </button>
-              <button class="frag-row__action" (click)="cancelRename()">Cancel</button>
-            </div>
-          } @else {
-            <button
-              class="frag-row__edit"
-              [disabled]="isRenaming()"
-              (click)="startRename(entry.item)"
-              title="Rename"
-            >
-              ✎
-            </button>
-            <button
-              class="frag-row__delete"
-              [disabled]="isRenaming()"
-              (click)="removeItem(entry.item.id)"
-              title="Remove"
-            >
-              ✕
-            </button>
-          }
-        </div>
+        <app-fragrance-row
+          cdkDrag
+          [fragrance]="entry.item"
+          [rank]="entry.rank"
+          [editing]="editingId() === entry.item.id"
+          [locked]="isRenaming()"
+          (toggleStatus)="store.toggleStatus(entry.item.id)"
+          (toggleGrandmaStatus)="store.toggleGrandmaStatus(entry.item.id)"
+          (moveUp)="store.moveBy(entry.item.id, -1)"
+          (moveDown)="store.moveBy(entry.item.id, 1)"
+          (remove)="store.remove(entry.item.id)"
+          (startRename)="startRename(entry.item.id)"
+          (rename)="rename(entry.item.id, $event)"
+          (cancelRename)="cancelRename()"
+        >
+          <div class="frag-row__placeholder" *cdkDragPlaceholder></div>
+        </app-fragrance-row>
       }
-    } @else {
-      <div
-        cdkDropList
-        [cdkDropListData]="store.items()"
-        (cdkDropListDropped)="onDrop($event)"
-        class="drop-zone"
-      >
-        @for (entry of visibleItems(); track entry.item.id) {
-          <div
-            cdkDrag
-            class="frag-row"
-            [cdkDragData]="entry"
-            [cdkDragDisabled]="isRenaming()"
-          >
-            <!-- Drag preview placeholder -->
-            <div class="frag-row__placeholder" *cdkDragPlaceholder></div>
-
-            <span class="frag-row__handle" cdkDragHandle>⠿</span>
-            <span class="frag-row__rank">{{ entry.rank }}</span>
-            @if (isEditing(entry.item.id)) {
-              <input
-                class="frag-row__input"
-                type="text"
-                placeholder="Rename fragrance..."
-                [value]="editingName()"
-                (input)="editingName.set($any($event.target).value)"
-                (keydown)="handleRenameKeydown($event, entry.item.id)"
-                #renameInput
-              />
-            } @else {
-              <span
-                class="frag-row__name"
-                title="Double-click to rename"
-                (dblclick)="startRename(entry.item)"
-              >
-                {{ entry.item.name }}
-              </span>
-            }
-            <button
-              class="frag-row__status"
-              [class.frag-row__status--empty]="!entry.item.status"
-              (click)="toggleStatus(entry.item.id)"
-              title="Toggle status"
-            >
-              {{ entry.item.status ? getStatusIcon(entry.item.status) : '○' }}
-            </button>
-            <button
-              class="frag-row__grandma-status"
-              (click)="toggleGrandmaStatus(entry.item.id)"
-              [attr.aria-label]="'Grandma approved: ' + getGrandmaStatusLabel(entry.item.grandmaStatus)"
-              [title]="'Grandma approved: ' + getGrandmaStatusLabel(entry.item.grandmaStatus)"
-            >
-              <span aria-hidden="true">{{ getGrandmaStatusIcon(entry.item.grandmaStatus) }}</span>
-              <span class="frag-row__grandma-label">
-                {{ getGrandmaStatusLabel(entry.item.grandmaStatus) }}
-              </span>
-            </button>
-            <div class="frag-row__arrows">
-              <button
-                class="frag-row__arrow"
-                [disabled]="isRenaming()"
-                (click)="moveUp(entry.item.id)"
-                title="Move up"
-              >
-                ▲
-              </button>
-              <button
-                class="frag-row__arrow"
-                [disabled]="isRenaming()"
-                (click)="moveDown(entry.item.id)"
-                title="Move down"
-              >
-                ▼
-              </button>
-            </div>
-            @if (isEditing(entry.item.id)) {
-              <div class="frag-row__edit-actions">
-                <button
-                  class="frag-row__action frag-row__action--save"
-                  [disabled]="editingName().trim().length === 0"
-                  (click)="saveRename(entry.item.id)"
-                >
-                  Save
-                </button>
-                <button class="frag-row__action" (click)="cancelRename()">Cancel</button>
-              </div>
-            } @else {
-              <button
-                class="frag-row__edit"
-                [disabled]="isRenaming()"
-                (click)="startRename(entry.item)"
-                title="Rename"
-              >
-                ✎
-              </button>
-              <button
-                class="frag-row__delete"
-                [disabled]="isRenaming()"
-                (click)="removeItem(entry.item.id)"
-                title="Remove"
-              >
-                ✕
-              </button>
-            }
-          </div>
-        }
-      </div>
-    }
+    </div>
   </div>
 
   <!-- Export section -->
   <div class="export-section">
     <h3 class="export-section__title">Formatted Export</h3>
     <textarea class="export-section__textarea" readonly [value]="formatted()"></textarea>
-    <button
-      class="btn btn--copy"
-      [class.btn--copied]="copied()"
-      (click)="copyToClipboard()"
-    >
+    <button class="btn btn--copy" [class.btn--copied]="copied()" (click)="copyToClipboard()">
       {{ copied() ? 'Copied ✓' : 'Copy to Clipboard' }}
     </button>
   </div>
 
-  <!-- Import Modal -->
-  @if (showImportModal()) {
-    <div class="modal-backdrop" (click)="closeImport()">
-      <div class="modal" (click)="$event.stopPropagation()">
-        <div class="modal__header">
-          <h2 class="modal__title">Import Fragrances</h2>
-          <button class="modal__close" (click)="closeImport()">✕</button>
-        </div>
-        <p class="modal__hint">
-          Paste your formatted list below. Expected format:<br>
-          <code>1) Fragrance Name (✅) [Grandma: 👍]</code>
-        </p>
-        <textarea
-          class="modal__textarea"
-          placeholder="Paste your fragrance list here..."
-          [value]="importText()"
-          (input)="onImportTextChange($any($event.target).value)"
-        ></textarea>
-
-        @if (importPreview().length > 0) {
-          <div class="modal__preview">
-            <span class="modal__preview-label">
-              Detected <strong>{{ importPreview().length }}</strong> fragrances
-            </span>
-            <div class="modal__preview-list">
-              @for (item of importPreview().slice(0, 5); track $index) {
-                <div class="modal__preview-item">
-                  {{ $index + 1 }}) {{ item.name }}
-                  @if (item.status) {
-                    <span>{{ getStatusIcon(item.status) }}</span>
-                  }
-                  <span>{{ getGrandmaStatusIcon(item.grandmaStatus) }}</span>
-                </div>
-              }
-              @if (importPreview().length > 5) {
-                <div class="modal__preview-item modal__preview-item--more">
-                  ...and {{ importPreview().length - 5 }} more
-                </div>
-              }
-            </div>
-          </div>
-        }
-
-        <div class="modal__actions">
-          <button class="btn btn--cancel" (click)="closeImport()">Cancel</button>
-          <button
-            class="btn btn--confirm"
-            [disabled]="importPreview().length === 0"
-            (click)="confirmImport()"
-          >
-            Replace List ({{ importPreview().length }} items)
-          </button>
-        </div>
-      </div>
-    </div>
+  @if (showImport()) {
+    <app-import-dialog (confirmed)="importList($event)" (dismissed)="showImport.set(false)" />
   }
 </div>

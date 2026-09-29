@@ -379,6 +379,22 @@ describe('App', () => {
       expect(page.names()).toEqual(SAMPLE.map((f) => f.name));
     });
 
+    it('allows dragging only in the full list and not while renaming', async () => {
+      const page = await render();
+      const dragDisabled = () => page.rows().map((r) => r.classList.contains('cdk-drag-disabled'));
+
+      expect(page.rows().every((r) => r.classList.contains('cdk-drag'))).toBe(true);
+      expect(page.queryAll('.frag-row__handle.cdk-drag-handle')).toHaveLength(4);
+      expect(dragDisabled()).toEqual([false, false, false, false]);
+
+      await page.search('noir');
+      expect(dragDisabled()).toEqual([true]);
+
+      await page.search('');
+      await page.click(page.query('.frag-row__edit', page.row('Xerjoff Naxos')));
+      expect(dragDisabled()).toEqual([true, true, true, true]);
+    });
+
     it('moves a fragrance by drag and drop', async () => {
       const page = await render();
 

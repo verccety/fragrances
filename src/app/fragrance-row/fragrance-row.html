@@ -1,0 +1,61 @@
+<span class="frag-row__handle" cdkDragHandle>⠿</span>
+<span class="frag-row__rank">{{ rank() }}</span>
+@if (editing()) {
+  <input
+    #renameInput
+    class="frag-row__input"
+    type="text"
+    placeholder="Rename fragrance..."
+    [value]="draft()"
+    (input)="draft.set($any($event.target).value)"
+    (keydown.enter)="$event.preventDefault(); saveRename()"
+  />
+} @else {
+  <span class="frag-row__name" title="Double-click to rename" (dblclick)="beginRename()">
+    {{ fragrance().name }}
+  </span>
+}
+<button
+  class="frag-row__status"
+  [class.frag-row__status--empty]="!fragrance().status"
+  (click)="toggleStatus.emit()"
+  title="Toggle status"
+>
+  {{ personal().icon }}
+</button>
+<button
+  class="frag-row__grandma-status"
+  (click)="toggleGrandmaStatus.emit()"
+  [attr.aria-label]="'Grandma approved: ' + grandma().label"
+  [title]="'Grandma approved: ' + grandma().label"
+>
+  <span aria-hidden="true">{{ grandma().icon }}</span>
+  <span class="frag-row__grandma-label">{{ grandma().label }}</span>
+</button>
+<div class="frag-row__arrows">
+  <button class="frag-row__arrow" [disabled]="locked()" (click)="moveUp.emit()" title="Move up">
+    ▲
+  </button>
+  <button class="frag-row__arrow" [disabled]="locked()" (click)="moveDown.emit()" title="Move down">
+    ▼
+  </button>
+</div>
+@if (editing()) {
+  <div class="frag-row__edit-actions">
+    <button
+      class="frag-row__action frag-row__action--save"
+      [disabled]="draft().trim().length === 0"
+      (click)="saveRename()"
+    >
+      Save
+    </button>
+    <button class="frag-row__action" (click)="cancelRename.emit()">Cancel</button>
+  </div>
+} @else {
+  <button class="frag-row__edit" [disabled]="locked()" (click)="beginRename()" title="Rename">
+    ✎
+  </button>
+  <button class="frag-row__delete" [disabled]="locked()" (click)="remove.emit()" title="Remove">
+    ✕
+  </button>
+}

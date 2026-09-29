@@ -1,0 +1,255 @@
+@use '../../theme' as *;
+
+:host {
+  display: flex;
+  align-items: center;
+  margin-bottom: 2px;
+  border-radius: 5px;
+  background: $bg-card;
+  border: 1px solid transparent;
+  transition: all 0.15s ease;
+  cursor: grab;
+  user-select: none;
+
+  &:hover {
+    background: rgba($gold, 0.05);
+    border-color: rgba($gold, 0.1);
+  }
+}
+
+:host(.cdk-drag-disabled) {
+  cursor: default;
+
+  .frag-row__handle {
+    cursor: default;
+    color: rgba($gold, 0.12);
+  }
+}
+
+.frag-row__handle {
+  color: rgba($gold, 0.2);
+  font-size: 0.7rem;
+  padding: 10px 6px 10px 10px;
+  cursor: grab;
+  line-height: 1;
+}
+
+.frag-row__rank {
+  font-family: 'Cormorant Garamond', serif;
+  font-weight: 500;
+  font-size: 0.85rem;
+  color: rgba($gold, 0.4);
+  width: 42px;
+  min-width: 42px;
+  text-align: right;
+  padding-right: 12px;
+}
+
+.frag-row__name,
+.frag-row__input {
+  flex: 1;
+  min-width: 0;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.82rem;
+  line-height: 1.35;
+}
+
+.frag-row__name {
+  font-weight: 400;
+  color: $text-dim;
+  padding: 10px 4px;
+}
+
+.frag-row__input {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba($gold, 0.22);
+  border-radius: 6px;
+  color: $text;
+  margin: 6px 4px;
+  padding: 8px 10px;
+  outline: none;
+
+  &:focus {
+    border-color: rgba($gold, 0.45);
+    background: rgba(255, 255, 255, 0.06);
+  }
+
+  &::placeholder {
+    color: rgba($gold, 0.24);
+  }
+}
+
+.frag-row__status {
+  width: 34px;
+  min-width: 34px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: 1px solid rgba($gold, 0.1);
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: all 0.15s;
+  margin: 0 2px;
+
+  &:hover {
+    background: rgba($gold, 0.1);
+    border-color: rgba($gold, 0.25);
+  }
+
+  &--empty {
+    color: rgba($gold, 0.2);
+    font-size: 0.6rem;
+  }
+}
+
+.frag-row__grandma-status {
+  width: 108px;
+  min-width: 108px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 6px;
+  background: none;
+  border: 1px solid rgba($gold, 0.1);
+  border-radius: 4px;
+  color: $text-dim;
+  cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.66rem;
+  padding: 0 8px;
+  transition: all 0.15s;
+  margin: 0 2px;
+
+  &:hover {
+    background: rgba($gold, 0.1);
+    border-color: rgba($gold, 0.25);
+  }
+}
+
+.frag-row__arrows {
+  display: flex;
+  flex-direction: column;
+  margin-right: 4px;
+}
+
+.frag-row__arrow {
+  background: none;
+  border: none;
+  color: rgba($gold, 0.25);
+  cursor: pointer;
+  padding: 4px 5px;
+  font-size: 0.65rem;
+  line-height: 1;
+  transition: color 0.15s;
+  display: flex;
+  align-items: center;
+
+  &:hover {
+    color: rgba($gold, 0.7);
+  }
+
+  &:disabled {
+    color: rgba($gold, 0.12);
+    cursor: not-allowed;
+  }
+}
+
+.frag-row__edit-actions {
+  display: flex;
+  gap: 6px;
+  padding: 0 8px 0 4px;
+}
+
+.frag-row__action,
+.frag-row__edit,
+.frag-row__delete {
+  background: none;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.frag-row__action {
+  border: 1px solid rgba($gold, 0.18);
+  border-radius: 4px;
+  color: rgba($gold, 0.75);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.66rem;
+  letter-spacing: 0.08em;
+  padding: 6px 8px;
+  text-transform: uppercase;
+
+  &:hover {
+    background: rgba($gold, 0.08);
+    border-color: rgba($gold, 0.28);
+  }
+
+  &:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+  }
+}
+
+.frag-row__action--save {
+  color: rgba($gold, 0.92);
+  border-color: rgba($gold, 0.32);
+}
+
+.frag-row__edit,
+.frag-row__delete {
+  border: none;
+  padding: 8px 10px;
+  font-size: 0.72rem;
+}
+
+.frag-row__edit {
+  color: rgba($gold, 0.3);
+
+  &:hover {
+    color: rgba($gold, 0.82);
+  }
+
+  &:disabled {
+    color: rgba($gold, 0.12);
+    cursor: not-allowed;
+  }
+}
+
+.frag-row__delete {
+  color: $danger;
+
+  &:hover {
+    color: $danger-hover;
+  }
+
+  &:disabled {
+    color: rgba($danger, 0.45);
+    cursor: not-allowed;
+  }
+}
+
+@media (max-width: 600px) {
+  .frag-row__name {
+    font-size: 0.75rem;
+  }
+
+  .frag-row__rank {
+    width: 32px;
+    min-width: 32px;
+    font-size: 0.78rem;
+  }
+
+  .frag-row__grandma-status {
+    width: 34px;
+    min-width: 34px;
+    justify-content: center;
+    padding: 0;
+  }
+
+  .frag-row__grandma-label {
+    display: none;
+  }
+}
