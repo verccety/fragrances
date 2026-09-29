@@ -189,8 +189,10 @@
 // ── Export ──────────────────────────────────────────────
 .export-section {
   max-width: 760px;
-  margin: 0 auto 50px;
-  padding: 0 24px;
+  margin: 0 auto;
+  // Bottom space as padding: with `html, body { height: 100% }` a trailing margin of
+  // overflowing content is dropped from the scroll area.
+  padding: 0 24px 50px;
 
   &__title {
     font-family: 'Cormorant Garamond', Georgia, serif;
