@@ -67,6 +67,13 @@ export class FragranceStore {
     this.move(from, to);
   }
 
+  /** Moves a fragrance to `index` in the ranking (0 is the top). */
+  public moveTo(id: string, index: number): void {
+    const from = this.state().findIndex((item) => item.id === id);
+    if (from < 0) { return; }
+    this.move(from, index);
+  }
+
   public move(fromIndex: number, toIndex: number): void {
     this.state.update((items) => {
       const next = [...items];

@@ -25,12 +25,15 @@ export class FragranceRow {
   public readonly editing = input(false);
   /** Set while any row is being renamed: moving, removing and renaming are unavailable. */
   public readonly locked = input(false);
+  /** Whether there is anything to compare with. */
+  public readonly placeable = input(true);
 
   public readonly toggleStatus = output();
   public readonly toggleGrandmaStatus = output();
   public readonly moveUp = output();
   public readonly moveDown = output();
   public readonly remove = output();
+  public readonly place = output();
   public readonly startRename = output();
   public readonly rename = output<string>();
   public readonly cancelRename = output();

@@ -77,11 +77,13 @@
           [rank]="entry.rank"
           [editing]="editingId() === entry.item.id"
           [locked]="isRenaming()"
+          [placeable]="store.items().length > 1"
           (toggleStatus)="store.toggleStatus(entry.item.id)"
           (toggleGrandmaStatus)="store.toggleGrandmaStatus(entry.item.id)"
           (moveUp)="store.moveBy(entry.item.id, -1)"
           (moveDown)="store.moveBy(entry.item.id, 1)"
           (remove)="store.remove(entry.item.id)"
+          (place)="startPlacement(entry.item.id)"
           (startRename)="startRename(entry.item.id)"
           (rename)="rename(entry.item.id, $event)"
           (cancelRename)="cancelRename()"
@@ -112,5 +114,14 @@
 
   @if (showImport()) {
     <app-import-dialog (confirmed)="importList($event)" (dismissed)="showImport.set(false)" />
+  }
+
+  @if (placing(); as fragrance) {
+    <app-placement-dialog
+      [fragrance]="fragrance"
+      [ranking]="store.items()"
+      (placed)="applyPlacement(fragrance.id, $event)"
+      (dismissed)="placingId.set(null)"
+    />
   }
 </div>

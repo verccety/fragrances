@@ -11,10 +11,11 @@ import { backupFileName, createBackup } from './fragrance/fragrance.backup';
 import { FragranceStore } from './fragrance/fragrance.store';
 import { FragranceRow } from './fragrance-row/fragrance-row';
 import { ImportDialog } from './import-dialog/import-dialog';
+import { PlacementDialog } from './placement-dialog/placement-dialog';
 
 @Component({
   selector: 'app-root',
-  imports: [CdkDropList, CdkDrag, CdkDragPlaceholder, FragranceRow, ImportDialog],
+  imports: [CdkDropList, CdkDrag, CdkDragPlaceholder, FragranceRow, ImportDialog, PlacementDialog],
   templateUrl: './app.html',
   styleUrl: './app.scss',
 })
@@ -27,6 +28,7 @@ export class App {
   protected readonly newName = signal('');
   protected readonly editingId = signal<string | null>(null);
   protected readonly showImport = signal(false);
+  protected readonly placingId = signal<string | null>(null);
   protected readonly copied = signal(false);
 
   /** Items matching the search, each with its rank in the full list. */
@@ -40,6 +42,9 @@ export class App {
 
   protected readonly formatted = computed(() => formatList(this.store.items()));
   protected readonly isRenaming = computed(() => this.editingId() !== null);
+  protected readonly placing = computed(
+    () => this.store.items().find((item) => item.id === this.placingId()) ?? null,
+  );
   /** Drag indexes only match the store when the full list is shown. */
   protected readonly canDrag = computed(() => !this.searchQuery() && !this.isRenaming());
 
@@ -82,6 +87,15 @@ export class App {
     link.click();
     // Revoking right away can cancel the download in some browsers (notably iOS Safari).
     setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+
+  protected startPlacement(id: string): void {
+    if (!this.isRenaming()) { this.placingId.set(id); }
+  }
+
+  protected applyPlacement(id: string, index: number): void {
+    this.store.moveTo(id, index);
+    this.placingId.set(null);
   }
 
   protected openImport(): void {

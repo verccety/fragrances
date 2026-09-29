@@ -586,6 +586,161 @@ describe('App', () => {
     });
   });
 
+  describe('finding a place', () => {
+    beforeEach(() => seed(SAMPLE));
+
+    const open = (page: Page, name: string) =>
+      page.click(page.query('.frag-row__place', page.row(name)));
+    const text = (page: Page, selector: string) =>
+      page.query(selector).textContent!.replace(/\s+/g, ' ').trim();
+    const placedCard = '.placement__card--placed';
+    const opponentCard = '.placement__card--opponent';
+    const opponentName = (page: Page) => text(page, `${opponentCard} .placement__card-name`);
+    const cancelButton = '.modal__actions .btn--cancel:not(.placement__back)';
+
+    it('compares the fragrance with the middle of the ranking first', async () => {
+      const page = await render();
+
+      await open(page, 'Kilian Smoking Hot');
+
+      expect(text(page, `${placedCard} .placement__card-name`)).toBe('Kilian Smoking Hot');
+      expect(text(page, `${placedCard} .placement__card-rank`)).toBe('#4 · placing');
+      expect(opponentName(page)).toBe('Xerjoff Naxos');
+      expect(text(page, `${opponentCard} .placement__card-rank`)).toBe('#2');
+      expect(text(page, '.placement__progress')).toBe('Question 1 of up to 2');
+    });
+
+    it('moves the fragrance to the place found by the answers once applied', async () => {
+      const page = await render();
+      await open(page, 'Kilian Smoking Hot');
+
+      await page.click(placedCard); // better than Xerjoff Naxos (#2)
+      expect(opponentName(page)).toBe('Creed Aventus');
+      await page.click(opponentCard); // worse than Creed Aventus (#1)
+
+      expect(text(page, '.placement__result-move')).toBe('#4 → #2');
+      expect(page.names()).toEqual(SAMPLE.map((f) => f.name));
+
+      await page.click('.placement__apply');
+
+      expect(page.exists('.modal')).toBe(false);
+      expect(page.names()).toEqual([
+        'Creed Aventus',
+        'Kilian Smoking Hot',
+        'Xerjoff Naxos',
+        'Tom Ford Noir Extreme',
+      ]);
+      expect(savedItems().map((f) => f.name)).toEqual(page.names());
+    });
+
+    it('places an equal fragrance right below its opponent', async () => {
+      const page = await render();
+      await open(page, 'Kilian Smoking Hot');
+
+      await page.click('.placement__same');
+      expect(text(page, '.placement__result-move')).toBe('#4 → #3');
+      await page.click('.placement__apply');
+
+      expect(page.names()).toEqual([
+        'Creed Aventus',
+        'Xerjoff Naxos',
+        'Kilian Smoking Hot',
+        'Tom Ford Noir Extreme',
+      ]);
+    });
+
+    it('says when the fragrance keeps its place', async () => {
+      const page = await render();
+      await open(page, 'Kilian Smoking Hot');
+
+      await page.click(opponentCard);
+      await page.click(opponentCard);
+
+      expect(text(page, '.placement__result-move')).toBe('stays at #4');
+    });
+
+    it('takes answers back one by one', async () => {
+      const page = await render();
+      await open(page, 'Kilian Smoking Hot');
+      expect(page.query<HTMLButtonElement>('.placement__back').disabled).toBe(true);
+
+      await page.click(placedCard);
+      await page.click(opponentCard);
+      await page.click('.placement__back');
+
+      expect(opponentName(page)).toBe('Creed Aventus');
+      expect(text(page, '.placement__progress')).toBe('Question 2 of up to 2');
+
+      await page.click('.placement__back');
+
+      expect(opponentName(page)).toBe('Xerjoff Naxos');
+      expect(text(page, '.placement__progress')).toBe('Question 1 of up to 2');
+    });
+
+    it('answers with the arrow keys', async () => {
+      const page = await render();
+      await open(page, 'Kilian Smoking Hot');
+
+      await page.press(document, 'ArrowLeft');
+      expect(opponentName(page)).toBe('Creed Aventus');
+      await page.press(document, 'ArrowRight');
+
+      expect(text(page, '.placement__result-move')).toBe('#4 → #2');
+    });
+
+    it.each([
+      ['Cancel on the result', async (page: Page) => page.click(cancelButton)],
+      ['Escape', async (page: Page) => page.press(document, 'Escape')],
+      ['the close button', async (page: Page) => page.click('.modal__close')],
+      ['a click on the backdrop', async (page: Page) => page.click('.modal-backdrop')],
+    ])('leaves the ranking untouched when closed via %s', async (_, close) => {
+      const page = await render();
+      await open(page, 'Kilian Smoking Hot');
+      await page.click(placedCard);
+      await page.click(opponentCard);
+
+      await close(page);
+
+      expect(page.exists('.modal')).toBe(false);
+      expect(page.names()).toEqual(SAMPLE.map((f) => f.name));
+    });
+
+    it('places within the full ranking when started from a search', async () => {
+      const page = await render();
+      await page.search('smoking');
+
+      await open(page, 'Kilian Smoking Hot');
+      await page.click(placedCard);
+      await page.click(opponentCard);
+      await page.click('.placement__apply');
+      await page.search('');
+
+      expect(page.names()).toEqual([
+        'Creed Aventus',
+        'Kilian Smoking Hot',
+        'Xerjoff Naxos',
+        'Tom Ford Noir Extreme',
+      ]);
+    });
+
+    it('is unavailable while renaming', async () => {
+      const page = await render();
+
+      await page.click(page.query('.frag-row__edit', page.row('Creed Aventus')));
+
+      const buttons = page.queryAll<HTMLButtonElement>('.frag-row__place');
+      expect(buttons).toHaveLength(3);
+      expect(buttons.every((b) => b.disabled)).toBe(true);
+    });
+
+    it('is unavailable when there is nothing to compare with', async () => {
+      seed([SAMPLE[0]]);
+      const page = await render();
+
+      expect(page.query<HTMLButtonElement>('.frag-row__place').disabled).toBe(true);
+    });
+  });
+
   describe('export', () => {
     beforeEach(() => seed(SAMPLE));
 

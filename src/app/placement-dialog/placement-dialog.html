@@ -1,0 +1,78 @@
+<div class="modal-backdrop" (click)="dismissed.emit()">
+  <div
+    class="modal placement"
+    role="dialog"
+    aria-labelledby="placement-title"
+    (click)="$event.stopPropagation()"
+  >
+    <div class="modal__header">
+      <h2 class="modal__title" id="placement-title">Find Its Place</h2>
+      <button class="modal__close" (click)="dismissed.emit()" aria-label="Close">✕</button>
+    </div>
+
+    @if (opponent(); as opponent) {
+      <p class="placement__question">Which do you like more?</p>
+      <p class="placement__progress">
+        Question {{ questionNumber() }} of up to {{ maxQuestions() }}
+      </p>
+
+      <div class="placement__cards">
+        <button class="placement__card placement__card--placed" (click)="answer('better')">
+          <span class="placement__card-rank">#{{ currentRank() }} · placing</span>
+          <span class="placement__card-name">{{ fragrance().name }}</span>
+          <span class="placement__card-statuses">
+            {{ personalStatus(fragrance().status).icon }}
+            {{ grandmaStatus(fragrance().grandmaStatus).icon }}
+          </span>
+          <span class="placement__card-key" aria-hidden="true">←</span>
+        </button>
+
+        <span class="placement__vs" aria-hidden="true">vs</span>
+
+        <button class="placement__card placement__card--opponent" (click)="answer('worse')">
+          <span class="placement__card-rank">#{{ opponent.rank }}</span>
+          <span class="placement__card-name">{{ opponent.item.name }}</span>
+          <span class="placement__card-statuses">
+            {{ personalStatus(opponent.item.status).icon }}
+            {{ grandmaStatus(opponent.item.grandmaStatus).icon }}
+          </span>
+          <span class="placement__card-key" aria-hidden="true">→</span>
+        </button>
+      </div>
+
+      <div class="modal__actions placement__actions">
+        <button
+          class="btn btn--cancel placement__back"
+          [disabled]="history().length === 0"
+          (click)="back()"
+        >
+          ← Back
+        </button>
+        <button class="btn btn--cancel placement__same" (click)="answer('same')">Same</button>
+      </div>
+    } @else {
+      <div class="placement__result">
+        <span class="placement__result-name">{{ fragrance().name }}</span>
+        <span class="placement__result-move">
+          @if (newRank() === currentRank()) {
+            stays at #{{ currentRank() }}
+          } @else {
+            #{{ currentRank() }} → #{{ newRank() }}
+          }
+        </span>
+      </div>
+
+      <div class="modal__actions">
+        <button
+          class="btn btn--cancel placement__back"
+          [disabled]="history().length === 0"
+          (click)="back()"
+        >
+          ← Back
+        </button>
+        <button class="btn btn--cancel" (click)="dismissed.emit()">Cancel</button>
+        <button class="btn btn--confirm placement__apply" (click)="apply()">Apply</button>
+      </div>
+    }
+  </div>
+</div>

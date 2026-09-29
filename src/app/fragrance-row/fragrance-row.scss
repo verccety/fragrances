@@ -165,6 +165,7 @@
 }
 
 .frag-row__action,
+.frag-row__place,
 .frag-row__edit,
 .frag-row__delete {
   background: none;
@@ -198,11 +199,26 @@
   border-color: rgba($gold, 0.32);
 }
 
+.frag-row__place,
 .frag-row__edit,
 .frag-row__delete {
   border: none;
   padding: 8px 10px;
   font-size: 0.72rem;
+}
+
+.frag-row__place {
+  opacity: 0.45;
+  font-size: 0.7rem;
+
+  &:hover {
+    opacity: 1;
+  }
+
+  &:disabled {
+    opacity: 0.15;
+    cursor: not-allowed;
+  }
 }
 
 .frag-row__edit {

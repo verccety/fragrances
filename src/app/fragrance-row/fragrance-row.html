@@ -52,6 +52,14 @@
     <button class="frag-row__action" (click)="cancelRename.emit()">Cancel</button>
   </div>
 } @else {
+  <button
+    class="frag-row__place"
+    [disabled]="locked() || !placeable()"
+    (click)="place.emit()"
+    title="Find its place by comparing"
+  >
+    ⚖️
+  </button>
   <button class="frag-row__edit" [disabled]="locked()" (click)="beginRename()" title="Rename">
     ✎
   </button>
