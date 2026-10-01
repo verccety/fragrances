@@ -75,6 +75,12 @@
         </button>
       }
     </div>
+    <div class="filters__group" role="group" aria-label="Lines">
+      <span class="filters__label">Lines</span>
+      <button class="filters__action filters__suggest" (click)="openSuggestLines()">
+        Suggest lines…
+      </button>
+    </div>
     @if (hasStatusFilter()) {
       <button class="filters__clear" (click)="clearStatusFilters()">Clear filters</button>
     }
@@ -171,6 +177,14 @@
       [lastCompared]="comparisons.lastCompared()"
       (finished)="finishRefine($event)"
       (dismissed)="showRefine.set(false)"
+    />
+  }
+
+  @if (showSuggestLines()) {
+    <app-suggest-lines-dialog
+      [ranking]="store.items()"
+      (applied)="applySuggestedLines($event)"
+      (dismissed)="showSuggestLines.set(false)"
     />
   }
 

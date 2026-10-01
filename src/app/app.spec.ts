@@ -777,6 +777,107 @@ describe('App', () => {
     });
   });
 
+  describe('suggested lines', () => {
+    const RELATED: FragranceData[] = [
+      { name: 'Creed Aventus', status: 'enjoy', grandmaStatus: 'liked' },
+      { name: 'Xerjoff Naxos', status: null, grandmaStatus: 'unknown' },
+      { name: 'Creed Aventus Absolu', status: null, grandmaStatus: 'unknown' },
+      { name: 'Chanel Bleu de Chanel EDP', status: null, grandmaStatus: 'unknown' },
+      { name: 'Chanel Bleu de Chanel Parfum (2018)', status: null, grandmaStatus: 'unknown' },
+      { name: 'Chanel Bleu de Chanel Sport', status: null, grandmaStatus: 'unknown' },
+    ];
+    beforeEach(() => seed(RELATED));
+
+    const open = (page: Page) => page.click('.filters__suggest');
+    const groups = (page: Page) =>
+      page.queryAll('.suggest__group').map((group) => ({
+        name: page.query<HTMLInputElement>('.suggest__name', group).value,
+        members: page
+          .queryAll('.suggest__member-name', group)
+          .map((m) => m.textContent!.trim()),
+      }));
+    const applyText = (page: Page) => page.query('.suggest__apply').textContent!.trim();
+    const savedLines = () =>
+      Object.fromEntries(
+        (JSON.parse(localStorage.getItem(STORAGE_KEY)!) as Fragrance[]).map((f) => [f.name, f.line]),
+      );
+    const memberBox = (page: Page, name: string) =>
+      page
+        .queryAll('.suggest__member')
+        .find((m) => m.textContent!.includes(name))!
+        .querySelector('input') as HTMLInputElement;
+
+    it('lists groups of related fragrances', async () => {
+      const page = await render();
+
+      await open(page);
+
+      expect(groups(page)).toEqual([
+        { name: 'Creed Aventus', members: ['Creed Aventus', 'Creed Aventus Absolu'] },
+        {
+          name: 'Chanel Bleu de Chanel',
+          members: [
+            'Chanel Bleu de Chanel EDP',
+            'Chanel Bleu de Chanel Parfum (2018)',
+            'Chanel Bleu de Chanel Sport',
+          ],
+        },
+      ]);
+      expect(applyText(page)).toBe('Apply 2 lines');
+    });
+
+    it('puts the checked fragrances into their lines', async () => {
+      const page = await render();
+      await open(page);
+
+      await page.click(memberBox(page, 'Chanel Bleu de Chanel Sport'));
+      await page.click('.suggest__apply');
+
+      expect(page.exists('.modal')).toBe(false);
+      expect(savedLines()).toEqual({
+        'Creed Aventus': 'Creed Aventus',
+        'Xerjoff Naxos': undefined,
+        'Creed Aventus Absolu': 'Creed Aventus',
+        'Chanel Bleu de Chanel EDP': 'Chanel Bleu de Chanel',
+        'Chanel Bleu de Chanel Parfum (2018)': 'Chanel Bleu de Chanel',
+        'Chanel Bleu de Chanel Sport': undefined,
+      });
+    });
+
+    it('uses edited names and skips groups with fewer than two checked', async () => {
+      const page = await render();
+      await open(page);
+
+      await page.type(page.queryAll('.suggest__name')[1], 'Bleu de Chanel');
+      await page.click(memberBox(page, 'Creed Aventus Absolu'));
+      expect(applyText(page)).toBe('Apply 1 line');
+      await page.click('.suggest__apply');
+
+      expect(savedLines()['Creed Aventus']).toBeUndefined();
+      expect(savedLines()['Chanel Bleu de Chanel Sport']).toBe('Bleu de Chanel');
+    });
+
+    it('says when there is nothing to suggest', async () => {
+      seed([RELATED[0], RELATED[1]]);
+      const page = await render();
+
+      await open(page);
+
+      expect(page.exists('.suggest__group')).toBe(false);
+      expect(page.query('.suggest__empty').textContent!.trim()).toContain('Nothing to suggest');
+    });
+
+    it('changes nothing on Cancel', async () => {
+      const page = await render();
+      await open(page);
+
+      await page.click('.modal__actions .btn--cancel');
+
+      expect(page.exists('.modal')).toBe(false);
+      expect(Object.values(savedLines()).every((line) => line === undefined)).toBe(true);
+    });
+  });
+
   describe('finding a place', () => {
     beforeEach(() => seed(SAMPLE));
 

@@ -1,0 +1,85 @@
+@use '../../theme' as *;
+
+.suggest {
+  max-width: 680px;
+  font-family: 'DM Sans', sans-serif;
+
+  &__hint,
+  &__empty {
+    margin-bottom: 14px;
+    font-size: 0.74rem;
+    line-height: 1.5;
+    color: rgba($gold, 0.5);
+  }
+
+  &__empty {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-size: 1.1rem;
+    color: $text-dim;
+  }
+
+  &__groups {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    list-style: none;
+  }
+
+  &__group {
+    padding: 10px 12px;
+    background: $bg-card;
+    border: 1px solid rgba($gold, 0.12);
+    border-radius: 8px;
+  }
+
+  &__name {
+    width: 100%;
+    margin-bottom: 8px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba($gold, 0.2);
+    border-radius: 5px;
+    padding: 6px 10px;
+    color: rgba($gold, 0.9);
+    font: inherit;
+    font-size: 0.8rem;
+    outline: none;
+
+    &:focus {
+      border-color: rgba($gold, 0.45);
+    }
+  }
+
+  &__members {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    list-style: none;
+  }
+
+  &__member {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 3px 2px;
+    color: $text-dim;
+    cursor: pointer;
+    font-size: 0.76rem;
+
+    input {
+      accent-color: rgb(192, 170, 140);
+    }
+  }
+
+  &__rank {
+    min-width: 34px;
+    color: rgba($gold, 0.45);
+    font-size: 0.68rem;
+  }
+
+  &__in-line {
+    font-size: 0.6rem;
+    letter-spacing: 0.1em;
+    color: rgba($gold, 0.45);
+    text-transform: uppercase;
+  }
+}

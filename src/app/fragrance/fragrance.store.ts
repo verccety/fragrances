@@ -52,6 +52,16 @@ export class FragranceStore {
     this.update(id, (item) => createFragrance({ ...item, line: line ?? undefined }, item.id));
   }
 
+  /** Sets lines for several fragrances in one change, keyed by fragrance id. */
+  public setLines(lines: ReadonlyMap<string, string>): void {
+    this.state.update((items) =>
+      items.map((item) => {
+        const line = lines.get(item.id);
+        return line === undefined ? item : createFragrance({ ...item, line }, item.id);
+      }),
+    );
+  }
+
   public remove(id: string): void {
     this.state.update((items) => items.filter((item) => item.id !== id));
   }

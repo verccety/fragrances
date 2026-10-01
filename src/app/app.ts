@@ -19,6 +19,7 @@ import { ImportDialog } from './import-dialog/import-dialog';
 import { PlacementDialog } from './placement-dialog/placement-dialog';
 import { RefineDialog, RefineResult } from './refine-dialog/refine-dialog';
 import { LineDialog } from './line-dialog/line-dialog';
+import { SuggestLinesDialog } from './suggest-lines-dialog/suggest-lines-dialog';
 
 @Component({
   selector: 'app-root',
@@ -31,6 +32,7 @@ import { LineDialog } from './line-dialog/line-dialog';
     PlacementDialog,
     RefineDialog,
     LineDialog,
+    SuggestLinesDialog,
   ],
   templateUrl: './app.html',
   styleUrl: './app.scss',
@@ -50,6 +52,7 @@ export class App {
   protected readonly placingId = signal<string | null>(null);
   protected readonly showRefine = signal(false);
   protected readonly lineEditingId = signal<string | null>(null);
+  protected readonly showSuggestLines = signal(false);
   protected readonly copied = signal(false);
 
   protected readonly filter = computed(() => ({
@@ -180,6 +183,16 @@ export class App {
   protected setLine(id: string, line: string | null): void {
     this.store.setLine(id, line);
     this.lineEditingId.set(null);
+  }
+
+  protected openSuggestLines(): void {
+    this.cancelRename();
+    this.showSuggestLines.set(true);
+  }
+
+  protected applySuggestedLines(lines: Map<string, string>): void {
+    this.store.setLines(lines);
+    this.showSuggestLines.set(false);
   }
 
   protected openRefine(): void {

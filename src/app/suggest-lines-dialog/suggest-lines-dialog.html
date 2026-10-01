@@ -1,0 +1,66 @@
+<div class="modal-backdrop" (click)="dismissed.emit()">
+  <div
+    class="modal suggest"
+    role="dialog"
+    aria-labelledby="suggest-title"
+    (click)="$event.stopPropagation()"
+  >
+    <div class="modal__header">
+      <h2 class="modal__title" id="suggest-title">Suggested Lines</h2>
+      <button class="modal__close" (click)="dismissed.emit()" aria-label="Close">✕</button>
+    </div>
+
+    @if (suggestions().length === 0) {
+      <p class="suggest__empty">Nothing to suggest — no more fragrances look related.</p>
+    } @else {
+      <p class="suggest__hint">
+        Fragrances that look like one line. Uncheck the ones that don't belong and adjust names.
+      </p>
+
+      <ul class="suggest__groups">
+        @for (suggestion of suggestions(); track $index; let i = $index) {
+          <li class="suggest__group">
+            <input
+              class="suggest__name"
+              type="text"
+              aria-label="Line name"
+              [value]="drafts()[i].name"
+              (input)="rename(i, $any($event.target).value)"
+            />
+            <ul class="suggest__members">
+              @for (member of suggestion.members; track member.id) {
+                <li>
+                  <label class="suggest__member">
+                    <input
+                      type="checkbox"
+                      [checked]="!drafts()[i].excluded.has(member.id)"
+                      (change)="toggleMember(i, member.id)"
+                    />
+                    <span class="suggest__rank">#{{ rankOf(member) }}</span>
+                    <span class="suggest__member-name">{{ member.name }}</span>
+                    @if (member.line) {
+                      <span class="suggest__in-line">in line</span>
+                    }
+                  </label>
+                </li>
+              }
+            </ul>
+          </li>
+        }
+      </ul>
+    }
+
+    <div class="modal__actions">
+      <button class="btn btn--cancel" (click)="dismissed.emit()">Cancel</button>
+      @if (suggestions().length > 0) {
+        <button
+          class="btn btn--confirm suggest__apply"
+          [disabled]="assignments().groups === 0"
+          (click)="apply()"
+        >
+          Apply {{ assignments().groups }} {{ assignments().groups === 1 ? 'line' : 'lines' }}
+        </button>
+      }
+    </div>
+  </div>
+</div>
