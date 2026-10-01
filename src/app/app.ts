@@ -3,11 +3,14 @@ import { CdkDrag, CdkDragDrop, CdkDragPlaceholder, CdkDropList } from '@angular/
 import {
   Fragrance,
   FragranceData,
+  FragranceStatus,
+  GrandmaStatus,
   GRANDMA_STATUSES,
   PERSONAL_STATUSES,
 } from './fragrance/fragrance.model';
 import { formatList } from './fragrance/fragrance.format';
 import { tierForRank, tierStartingAt } from './fragrance/fragrance.tiers';
+import { isFilterActive, matchesFilter, toggleValue } from './fragrance/fragrance.filter';
 import { backupFileName, createBackup } from './fragrance/fragrance.backup';
 import { FragranceStore } from './fragrance/fragrance.store';
 import { ComparisonLog } from './fragrance/fragrance.comparison-log';
@@ -37,6 +40,8 @@ export class App {
   protected readonly grandmaStatuses = GRANDMA_STATUSES;
 
   protected readonly searchQuery = signal('');
+  protected readonly statusFilter = signal<FragranceStatus[]>([]);
+  protected readonly grandmaFilter = signal<GrandmaStatus[]>([]);
   protected readonly newName = signal('');
   protected readonly editingId = signal<string | null>(null);
   protected readonly showImport = signal(false);
@@ -44,12 +49,39 @@ export class App {
   protected readonly showRefine = signal(false);
   protected readonly copied = signal(false);
 
+  protected readonly filter = computed(() => ({
+    name: this.searchQuery(),
+    statuses: this.statusFilter(),
+    grandmaStatuses: this.grandmaFilter(),
+  }));
+  protected readonly isFiltering = computed(() => isFilterActive(this.filter()));
+  protected readonly hasStatusFilter = computed(
+    () => this.statusFilter().length > 0 || this.grandmaFilter().length > 0,
+  );
+
+  /** One chip per status, with how many fragrances in the whole list have it. */
+  protected readonly personalChips = computed(() =>
+    PERSONAL_STATUSES.map((option) => ({
+      option,
+      count: this.store.items().filter((item) => item.status === option.value).length,
+      active: this.statusFilter().includes(option.value),
+    })),
+  );
+  protected readonly grandmaChips = computed(() =>
+    GRANDMA_STATUSES.map((option) => ({
+      option,
+      count: this.store.items().filter((item) => item.grandmaStatus === option.value).length,
+      active: this.grandmaFilter().includes(option.value),
+    })),
+  );
+
   /**
-   * Items matching the search, each with its rank and tier in the full list.
+   * Items matching the search and filters, each with its rank and tier in the full list.
    * Tier headings are only shown for the full list, where tiers are contiguous.
    */
   protected readonly visibleItems = computed(() => {
-    const q = this.searchQuery().toLowerCase();
+    const filter = this.filter();
+    const filtering = this.isFiltering();
     return this.store
       .items()
       .map((item, index) => {
@@ -58,10 +90,10 @@ export class App {
           item,
           rank,
           tier: tierForRank(rank).id,
-          tierLabel: q ? null : (tierStartingAt(rank)?.label ?? null),
+          tierLabel: filtering ? null : (tierStartingAt(rank)?.label ?? null),
         };
       })
-      .filter(({ item }) => item.name.toLowerCase().includes(q));
+      .filter(({ item }) => matchesFilter(item, filter));
   });
 
   protected readonly formatted = computed(() => formatList(this.store.items()));
@@ -70,10 +102,23 @@ export class App {
     () => this.store.items().find((item) => item.id === this.placingId()) ?? null,
   );
   /** Drag indexes only match the store when the full list is shown. */
-  protected readonly canDrag = computed(() => !this.searchQuery() && !this.isRenaming());
+  protected readonly canDrag = computed(() => !this.isFiltering() && !this.isRenaming());
 
   public onDrop(event: CdkDragDrop<Fragrance[]>): void {
     this.store.move(event.previousIndex, event.currentIndex);
+  }
+
+  protected toggleStatusFilter(status: FragranceStatus): void {
+    this.statusFilter.update((values) => toggleValue(values, status));
+  }
+
+  protected toggleGrandmaFilter(status: GrandmaStatus): void {
+    this.grandmaFilter.update((values) => toggleValue(values, status));
+  }
+
+  protected clearStatusFilters(): void {
+    this.statusFilter.set([]);
+    this.grandmaFilter.set([]);
   }
 
   protected addItem(): void {

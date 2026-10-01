@@ -102,6 +102,85 @@
   }
 }
 
+// ── Filters ─────────────────────────────────────────────
+.filters {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 0 24px 10px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 18px;
+  font-family: 'DM Sans', sans-serif;
+
+  &__group {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+  }
+
+  &__label {
+    font-size: 0.6rem;
+    letter-spacing: 0.12em;
+    color: rgba($gold, 0.35);
+    text-transform: uppercase;
+  }
+
+  &__chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 10px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba($gold, 0.12);
+    border-radius: 999px;
+    color: $text-dim;
+    cursor: pointer;
+    font: inherit;
+    font-size: 0.68rem;
+    transition: all 0.15s;
+
+    &:hover {
+      border-color: rgba($gold, 0.3);
+    }
+
+    &--active {
+      background: rgba($gold, 0.16);
+      border-color: rgba($gold, 0.5);
+      color: $text;
+    }
+  }
+
+  &__count {
+    color: rgba($gold, 0.45);
+    font-size: 0.6rem;
+  }
+
+  &__clear {
+    background: none;
+    border: none;
+    color: rgba($gold, 0.6);
+    cursor: pointer;
+    font: inherit;
+    font-size: 0.66rem;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+
+    &:hover {
+      color: rgba($gold, 0.9);
+    }
+  }
+}
+
+.list-empty {
+  padding: 24px 0;
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: 1.05rem;
+  color: rgba($gold, 0.45);
+  text-align: center;
+}
+
 // ── Legend ──────────────────────────────────────────────
 .legend {
   max-width: 760px;

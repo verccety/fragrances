@@ -980,6 +980,125 @@ describe('App', () => {
     });
   });
 
+  describe('filters', () => {
+    beforeEach(() => seed(SAMPLE));
+
+    const chipText = (chip: HTMLElement) => chip.textContent!.replace(/\s+/g, ' ').trim();
+    const chips = (page: Page, group: 'personal' | 'grandma') =>
+      page.queryAll(`.filters__chip--${group}`);
+    const chip = (page: Page, group: 'personal' | 'grandma', label: string) => {
+      const found = chips(page, group).find((c) => chipText(c).includes(label));
+      if (!found) {
+        throw new Error(`Chip not found: ${label}`);
+      }
+      return found;
+    };
+
+    it('offers a chip per status with counts, none selected', async () => {
+      const page = await render();
+
+      expect(chips(page, 'personal').map(chipText)).toEqual([
+        '○ Not rated 2',
+        '✅ Enjoy 1',
+        '🚩 Dislike 1',
+      ]);
+      expect(chips(page, 'grandma').map(chipText)).toEqual([
+        '❔ Unknown 1',
+        '👎 Disliked 1',
+        '👍 Liked 1',
+        '➖ Indifferent 1',
+      ]);
+      expect(page.queryAll('[aria-pressed="true"]')).toHaveLength(0);
+      expect(page.exists('.filters__clear')).toBe(false);
+    });
+
+    it('shows only matching fragrances with their real ranks', async () => {
+      const page = await render();
+
+      await page.click(chip(page, 'personal', 'Not rated'));
+
+      expect(page.names()).toEqual(['Xerjoff Naxos', 'Kilian Smoking Hot']);
+      expect(page.ranks()).toEqual(['2', '4']);
+      expect(chip(page, 'personal', 'Not rated').getAttribute('aria-pressed')).toBe('true');
+    });
+
+    it('matches any selected chip within a group', async () => {
+      const page = await render();
+
+      await page.click(chip(page, 'personal', 'Not rated'));
+      await page.click(chip(page, 'personal', 'Enjoy'));
+
+      expect(page.names()).toEqual(['Creed Aventus', 'Xerjoff Naxos', 'Kilian Smoking Hot']);
+    });
+
+    it('requires both groups and the search to match', async () => {
+      const page = await render();
+
+      await page.click(chip(page, 'personal', 'Not rated'));
+      await page.click(chip(page, 'grandma', 'Indifferent'));
+      expect(page.names()).toEqual(['Kilian Smoking Hot']);
+
+      await page.click(chip(page, 'grandma', 'Indifferent'));
+      await page.search('naxos');
+      expect(page.names()).toEqual(['Xerjoff Naxos']);
+    });
+
+    it('says when nothing matches', async () => {
+      const page = await render();
+
+      await page.click(chip(page, 'personal', 'Enjoy'));
+      await page.click(chip(page, 'grandma', 'Unknown'));
+
+      expect(page.rows()).toHaveLength(0);
+      expect(page.query('.list-empty').textContent!.trim()).toBe('No fragrances match.');
+    });
+
+    it('clears the chips but keeps the search', async () => {
+      const page = await render();
+      await page.search('o');
+      await page.click(chip(page, 'personal', 'Dislike'));
+
+      await page.click('.filters__clear');
+
+      expect(page.queryAll('[aria-pressed="true"]')).toHaveLength(0);
+      expect(page.names()).toEqual([
+        'Xerjoff Naxos',
+        'Tom Ford Noir Extreme',
+        'Kilian Smoking Hot',
+      ]);
+    });
+
+    it('updates counts and drops fragrances that stop matching', async () => {
+      const page = await render();
+      await page.click(chip(page, 'personal', 'Not rated'));
+
+      await page.click(page.query('.frag-row__status', page.row('Xerjoff Naxos')));
+
+      expect(page.names()).toEqual(['Kilian Smoking Hot']);
+      expect(chipText(chip(page, 'personal', 'Enjoy'))).toBe('✅ Enjoy 2');
+    });
+
+    it('disables dragging and hides tier headings while filtering', async () => {
+      const page = await render();
+      expect(page.exists('.frag-row__tier-label')).toBe(true);
+
+      await page.click(chip(page, 'grandma', 'Liked'));
+
+      expect(page.rows().every((r) => r.classList.contains('cdk-drag-disabled'))).toBe(true);
+      expect(page.exists('.frag-row__tier-label')).toBe(false);
+    });
+
+    it('starts with the full list after a reload', async () => {
+      const page = await render();
+      await page.click(chip(page, 'personal', 'Enjoy'));
+
+      const reloaded = await reload();
+
+      expect(reloaded.queryAll('[aria-pressed="true"]')).toHaveLength(0);
+      expect(reloaded.names()).toEqual(SAMPLE.map((f) => f.name));
+    });
+  });
+
   describe('export', () => {
     beforeEach(() => seed(SAMPLE));
 

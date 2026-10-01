@@ -8,7 +8,7 @@ export interface StatusOption<T> {
 
 /** Personal ratings, in the order a click cycles through them. */
 export const PERSONAL_STATUSES = [
-  { value: null, icon: '○', label: 'None', legend: 'Personal status not set' },
+  { value: null, icon: '○', label: 'Not rated', legend: 'Personal status not set' },
   { value: 'enjoy', icon: '✅', label: 'Enjoy', legend: 'Personally enjoyed' },
   { value: 'dislike', icon: '🚩', label: 'Dislike', legend: 'Personally disliked' },
 ] as const satisfies readonly StatusOption<string | null>[];

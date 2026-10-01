@@ -45,6 +45,41 @@
     />
   </div>
 
+  <!-- Status filters: any chip within a group, and every group -->
+  <div class="filters">
+    <div class="filters__group" role="group" aria-label="Filter by personal rating">
+      <span class="filters__label">Personal</span>
+      @for (chip of personalChips(); track chip.option.value) {
+        <button
+          class="filters__chip filters__chip--personal"
+          [class.filters__chip--active]="chip.active"
+          [attr.aria-pressed]="chip.active"
+          (click)="toggleStatusFilter(chip.option.value)"
+        >
+          {{ chip.option.icon }} {{ chip.option.label }}
+          <span class="filters__count">{{ chip.count }}</span>
+        </button>
+      }
+    </div>
+    <div class="filters__group" role="group" aria-label="Filter by grandma's verdict">
+      <span class="filters__label">Grandma</span>
+      @for (chip of grandmaChips(); track chip.option.value) {
+        <button
+          class="filters__chip filters__chip--grandma"
+          [class.filters__chip--active]="chip.active"
+          [attr.aria-pressed]="chip.active"
+          (click)="toggleGrandmaFilter(chip.option.value)"
+        >
+          {{ chip.option.icon }} {{ chip.option.label }}
+          <span class="filters__count">{{ chip.count }}</span>
+        </button>
+      }
+    </div>
+    @if (hasStatusFilter()) {
+      <button class="filters__clear" (click)="clearStatusFilters()">Clear filters</button>
+    }
+  </div>
+
   <!-- Legend -->
   <div class="legend">
     <span>
@@ -63,7 +98,7 @@
     </span>
   </div>
 
-  <!-- Ranked list: drag & drop is disabled while searching or renaming -->
+  <!-- Ranked list: drag & drop is disabled while searching, filtering or renaming -->
   <div class="list-container">
     <div class="list-header">
       <span class="list-header__name">Fragrance</span>
@@ -102,6 +137,9 @@
         </app-fragrance-row>
       }
     </div>
+    @if (visibleItems().length === 0 && store.items().length > 0) {
+      <p class="list-empty">No fragrances match.</p>
+    }
   </div>
 
   <!-- Export section -->
