@@ -17,6 +17,14 @@
   <span class="frag-row__name" title="Double-click to rename" (dblclick)="beginRename()">
     {{ fragrance().name }}
   </span>
+  @if (hiddenCount() > 0) {
+    <span
+      class="frag-row__hidden"
+      [title]="hiddenCount() + ' more in the ' + fragrance().line + ' line'"
+    >
+      +{{ hiddenCount() }}
+    </span>
+  }
 }
 <button
   class="frag-row__status"
@@ -36,10 +44,20 @@
   <span class="frag-row__grandma-label">{{ grandma().label }}</span>
 </button>
 <div class="frag-row__arrows">
-  <button class="frag-row__arrow" [disabled]="locked()" (click)="moveUp.emit()" title="Move up">
+  <button
+    class="frag-row__arrow"
+    [disabled]="locked() || !reorderable()"
+    (click)="moveUp.emit()"
+    title="Move up"
+  >
     ▲
   </button>
-  <button class="frag-row__arrow" [disabled]="locked()" (click)="moveDown.emit()" title="Move down">
+  <button
+    class="frag-row__arrow"
+    [disabled]="locked() || !reorderable()"
+    (click)="moveDown.emit()"
+    title="Move down"
+  >
     ▼
   </button>
 </div>

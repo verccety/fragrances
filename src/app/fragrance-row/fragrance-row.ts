@@ -35,6 +35,10 @@ export class FragranceRow {
   public readonly locked = input(false);
   /** Whether there is anything to compare with. */
   public readonly placeable = input(true);
+  /** False in views where the shown order is not the full ranking, e.g. one per line. */
+  public readonly reorderable = input(true);
+  /** Line members hidden behind this row in the one-per-line view. */
+  public readonly hiddenCount = input(0);
 
   public readonly toggleStatus = output();
   public readonly toggleGrandmaStatus = output();

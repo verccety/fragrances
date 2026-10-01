@@ -878,6 +878,95 @@ describe('App', () => {
     });
   });
 
+  describe('one per line', () => {
+    const item = (name: string, status: FragranceData['status'], line?: string) =>
+      ({ name, status, grandmaStatus: 'unknown', line }) as FragranceData;
+    const LINED: FragranceData[] = [
+      item('Creed Aventus Absolu', 'enjoy', 'Creed Aventus'),
+      item('Xerjoff Naxos', null),
+      item('Creed Aventus', 'enjoy', 'Creed Aventus'),
+      item('Chanel Bleu de Chanel EDP', 'dislike', 'Bleu'),
+      item('Chanel Bleu de Chanel Parfum', 'enjoy', 'Bleu'),
+      item('Kilian Smoking Hot', null),
+    ];
+    beforeEach(() => seed(LINED));
+
+    const toggle = (page: Page) => page.click('.filters__one-per-line');
+    const badges = (page: Page) =>
+      page.rows().map((row) => row.querySelector('.frag-row__hidden')?.textContent?.trim() ?? '');
+
+    it('shows only the best-ranked fragrance of each line, renumbered', async () => {
+      const page = await render();
+
+      await toggle(page);
+
+      expect(page.names()).toEqual([
+        'Creed Aventus Absolu',
+        'Xerjoff Naxos',
+        'Chanel Bleu de Chanel EDP',
+        'Kilian Smoking Hot',
+      ]);
+      expect(page.ranks()).toEqual(['1', '2', '3', '4']);
+      expect(badges(page)).toEqual(['+1', '', '+1', '']);
+      expect(page.query('.frag-row__hidden').getAttribute('title')).toBe(
+        '1 more in the Creed Aventus line',
+      );
+      expect(page.query('.filters__one-per-line').getAttribute('aria-pressed')).toBe('true');
+      expect(page.query('.frag-row__tier-label').textContent!.trim()).toBe('Top 10');
+    });
+
+    it('is a view only: no dragging and no arrows', async () => {
+      const page = await render();
+
+      await toggle(page);
+
+      expect(page.rows().every((r) => r.classList.contains('cdk-drag-disabled'))).toBe(true);
+      expect(page.queryAll<HTMLButtonElement>('.frag-row__arrow').every((b) => b.disabled)).toBe(
+        true,
+      );
+      expect(page.query<HTMLButtonElement>('.frag-row__place').disabled).toBe(false);
+    });
+
+    it('applies filters to the collapsed ranking', async () => {
+      const page = await render();
+      await toggle(page);
+
+      await page.click(
+        page.queryAll('.filters__chip--personal').find((c) => c.textContent!.includes('Enjoy'))!,
+      );
+
+      expect(page.names()).toEqual(['Creed Aventus Absolu']);
+      expect(page.ranks()).toEqual(['1']);
+    });
+
+    it('shows the next member when the best one is removed', async () => {
+      const page = await render();
+      await toggle(page);
+
+      await page.click(page.query('.frag-row__delete', page.row('Creed Aventus Absolu')));
+
+      expect(page.names()).toEqual([
+        'Xerjoff Naxos',
+        'Creed Aventus',
+        'Chanel Bleu de Chanel EDP',
+        'Kilian Smoking Hot',
+      ]);
+      expect(badges(page)).toEqual(['', '', '+1', '']);
+    });
+
+    it('returns to the full list when switched off and after a reload', async () => {
+      const page = await render();
+      await toggle(page);
+
+      await toggle(page);
+      expect(page.names()).toEqual(LINED.map((f) => f.name));
+
+      await toggle(page);
+      const reloaded = await reload();
+      expect(reloaded.names()).toEqual(LINED.map((f) => f.name));
+    });
+  });
+
   describe('finding a place', () => {
     beforeEach(() => seed(SAMPLE));
 

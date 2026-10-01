@@ -77,6 +77,15 @@
     </div>
     <div class="filters__group" role="group" aria-label="Lines">
       <span class="filters__label">Lines</span>
+      <button
+        class="filters__chip filters__one-per-line"
+        [class.filters__chip--active]="onePerLine()"
+        [attr.aria-pressed]="onePerLine()"
+        (click)="onePerLine.set(!onePerLine())"
+        title="Show each line only through its best-ranked fragrance"
+      >
+        One per line
+      </button>
       <button class="filters__action filters__suggest" (click)="openSuggestLines()">
         Suggest lines…
       </button>
@@ -104,7 +113,7 @@
     </span>
   </div>
 
-  <!-- Ranked list: drag & drop is disabled while searching, filtering or renaming -->
+  <!-- Ranked list: drag & drop is disabled while searching, filtering, one per line or renaming -->
   <div class="list-container">
     <div class="list-header">
       <span class="list-header__name">Fragrance</span>
@@ -126,6 +135,8 @@
           [rank]="entry.rank"
           [tier]="entry.tier"
           [tierLabel]="entry.tierLabel"
+          [hiddenCount]="entry.hiddenCount"
+          [reorderable]="!onePerLine()"
           [editing]="editingId() === entry.item.id"
           [locked]="isRenaming()"
           [placeable]="store.items().length > 1"

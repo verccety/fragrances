@@ -1,5 +1,11 @@
 import { Fragrance, createFragrance } from './fragrance.model';
-import { baseName, listLines, matchingLines, suggestLines } from './fragrance.lines';
+import {
+  baseName,
+  collapseLines,
+  listLines,
+  matchingLines,
+  suggestLines,
+} from './fragrance.lines';
 
 const make = (name: string, line?: string): Fragrance =>
   createFragrance({ name, status: null, grandmaStatus: 'unknown', line }, name);
@@ -45,6 +51,16 @@ describe('fragrance lines', () => {
       'Creed Aventus Absolu Line',
     ]);
     expect(matchingLines(lines, '  ').map((l) => l.name)).toHaveLength(3);
+  });
+
+  it('keeps the best-ranked member of each line and counts the hidden ones', () => {
+    const collapsed = collapseLines(RANKING);
+
+    expect(collapsed.map(({ item, hiddenCount }) => [item.name, hiddenCount])).toEqual([
+      ['Creed Aventus Absolu', 1],
+      ['Xerjoff Naxos', 0],
+      ['Chanel Bleu de Chanel EDP', 1],
+    ]);
   });
 
   describe('base names', () => {

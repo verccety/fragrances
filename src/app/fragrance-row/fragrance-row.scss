@@ -100,6 +100,17 @@
   line-height: 1.35;
 }
 
+.frag-row__hidden {
+  margin-right: 8px;
+  padding: 2px 7px;
+  border: 1px solid rgba($gold, 0.25);
+  border-radius: 999px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.62rem;
+  color: rgba($gold, 0.7);
+  white-space: nowrap;
+}
+
 .frag-row__name {
   font-weight: 400;
   color: $text-dim;

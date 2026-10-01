@@ -11,6 +11,7 @@ import {
 import { formatList } from './fragrance/fragrance.format';
 import { tierForRank, tierStartingAt } from './fragrance/fragrance.tiers';
 import { isFilterActive, matchesFilter, toggleValue } from './fragrance/fragrance.filter';
+import { collapseLines } from './fragrance/fragrance.lines';
 import { backupFileName, createBackup } from './fragrance/fragrance.backup';
 import { FragranceStore } from './fragrance/fragrance.store';
 import { ComparisonLog } from './fragrance/fragrance.comparison-log';
@@ -46,6 +47,8 @@ export class App {
   protected readonly searchQuery = signal('');
   protected readonly statusFilter = signal<FragranceStatus[]>([]);
   protected readonly grandmaFilter = signal<GrandmaStatus[]>([]);
+  /** Show each line only through its best-ranked member; a view, so order can't change. */
+  protected readonly onePerLine = signal(false);
   protected readonly newName = signal('');
   protected readonly editingId = signal<string | null>(null);
   protected readonly showImport = signal(false);
@@ -82,19 +85,23 @@ export class App {
   );
 
   /**
-   * Items matching the search and filters, each with its rank and tier in the full list.
-   * Tier headings are only shown for the full list, where tiers are contiguous.
+   * The ranking being viewed: the full list, or one fragrance per line. Ranks and tiers are
+   * counted within it, then search and filters narrow it down. Tier headings are only shown
+   * when nothing is filtered out, so tiers are contiguous.
    */
   protected readonly visibleItems = computed(() => {
     const filter = this.filter();
     const filtering = this.isFiltering();
-    return this.store
-      .items()
-      .map((item, index) => {
+    const ranking = this.onePerLine()
+      ? collapseLines(this.store.items())
+      : this.store.items().map((item) => ({ item, hiddenCount: 0 }));
+    return ranking
+      .map(({ item, hiddenCount }, index) => {
         const rank = index + 1;
         return {
           item,
           rank,
+          hiddenCount,
           tier: tierForRank(rank).id,
           tierLabel: filtering ? null : (tierStartingAt(rank)?.label ?? null),
         };
@@ -111,7 +118,9 @@ export class App {
     () => this.store.items().find((item) => item.id === this.lineEditingId()) ?? null,
   );
   /** Drag indexes only match the store when the full list is shown. */
-  protected readonly canDrag = computed(() => !this.isFiltering() && !this.isRenaming());
+  protected readonly canDrag = computed(
+    () => !this.isFiltering() && !this.onePerLine() && !this.isRenaming(),
+  );
 
   public onDrop(event: CdkDragDrop<Fragrance[]>): void {
     this.store.move(event.previousIndex, event.currentIndex);

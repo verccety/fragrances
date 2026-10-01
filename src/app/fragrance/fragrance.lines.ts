@@ -31,6 +31,24 @@ export function listLines(ranking: readonly Fragrance[]): LineSummary[] {
   return [...lines.values()];
 }
 
+/**
+ * The ranking with each line reduced to its best-ranked member, plus how many members
+ * that hides. Fragrances outside a line are kept as they are.
+ */
+export function collapseLines(
+  ranking: readonly Fragrance[],
+): { item: Fragrance; hiddenCount: number }[] {
+  const sizes = new Map(listLines(ranking).map((line) => [line.key, line.members.length]));
+  const seen = new Set<string>();
+  return ranking.flatMap((item) => {
+    if (!item.line) { return [{ item, hiddenCount: 0 }]; }
+    const key = lineKey(item.line);
+    if (seen.has(key)) { return []; }
+    seen.add(key);
+    return [{ item, hiddenCount: (sizes.get(key) ?? 1) - 1 }];
+  });
+}
+
 export interface LineSuggestion {
   /** Name for the line: an existing line's name, or the shortest shared base name. */
   name: string;
