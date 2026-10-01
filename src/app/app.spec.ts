@@ -223,6 +223,15 @@ describe('App', () => {
       expect(savedIds()).toEqual(ids);
     });
 
+    it('loads and saves lines without adding empty ones', async () => {
+      seed([{ ...SAMPLE[0], line: ' Creed Aventus ' }, SAMPLE[1]]);
+      await render();
+
+      const saved = JSON.parse(localStorage.getItem(STORAGE_KEY)!) as Fragrance[];
+      expect(saved[0].line).toBe('Creed Aventus');
+      expect('line' in saved[1]).toBe(false);
+    });
+
     it('keeps changes after a reload', async () => {
       seed(SAMPLE);
       const page = await render();

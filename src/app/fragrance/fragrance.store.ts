@@ -47,6 +47,11 @@ export class FragranceStore {
     this.update(id, (item) => ({ ...item, name: trimmed }));
   }
 
+  /** Puts a fragrance into a line, or takes it out with `null` / a blank name. */
+  public setLine(id: string, line: string | null): void {
+    this.update(id, (item) => createFragrance({ ...item, line: line ?? undefined }, item.id));
+  }
+
   public remove(id: string): void {
     this.state.update((items) => items.filter((item) => item.id !== id));
   }

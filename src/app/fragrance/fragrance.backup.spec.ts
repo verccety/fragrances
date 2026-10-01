@@ -13,7 +13,7 @@ describe('createBackup', () => {
 
     expect(JSON.parse(createBackup(ITEMS, now))).toEqual({
       app: 'fragrance-collection',
-      version: 1,
+      version: 2,
       exportedAt: '2026-09-30T12:34:56.000Z',
       items: ITEMS,
     });
@@ -23,6 +23,16 @@ describe('createBackup', () => {
     const backup = JSON.parse(createBackup([createFragrance(ITEMS[0], 'some-id')]));
 
     expect(backup.items).toEqual([ITEMS[0]]);
+  });
+
+  it('keeps lines and writes no key for fragrances outside a line', () => {
+    const items: FragranceData[] = [{ ...ITEMS[0], line: 'Creed Aventus' }, ITEMS[1]];
+
+    const backup = JSON.parse(createBackup(items));
+
+    expect(backup.items).toEqual(items);
+    expect('line' in backup.items[1]).toBe(false);
+    expect(readBackup(createBackup(items))).toEqual({ ok: true, items });
   });
 });
 
@@ -44,6 +54,25 @@ describe('readBackup', () => {
     const saved = JSON.stringify([createFragrance(ITEMS[0], 'id-1')]);
 
     expect(readBackup(saved)).toEqual({ ok: true, items: [ITEMS[0]] });
+  });
+
+  it('reads version 1 backups, made before lines existed', () => {
+    const text = JSON.stringify({ app: 'fragrance-collection', version: 1, items: ITEMS });
+
+    expect(readBackup(text)).toEqual({ ok: true, items: ITEMS });
+  });
+
+  it('ignores blank or non-text lines', () => {
+    const text = JSON.stringify([
+      { ...ITEMS[0], line: '  ' },
+      { ...ITEMS[1], line: 42 },
+      { ...ITEMS[1], name: 'Kilian Smoking Hot', line: '  Kilian Smoking  ' },
+    ]);
+
+    expect(readBackup(text)).toEqual({
+      ok: true,
+      items: [ITEMS[0], ITEMS[1], { ...ITEMS[1], name: 'Kilian Smoking Hot', line: 'Kilian Smoking' }],
+    });
   });
 
   it('repairs invalid statuses and drops entries without a name', () => {
@@ -71,7 +100,7 @@ describe('readBackup', () => {
     ['only unreadable entries', '[{"name":""},null]', 'No fragrances found in this file.'],
     [
       'a newer format version',
-      JSON.stringify({ version: 2, items: ITEMS }),
+      JSON.stringify({ version: 3, items: ITEMS }),
       'This backup was made by a newer version of the app.',
     ],
   ])('rejects %s', (_, text, error) => {

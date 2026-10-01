@@ -1,9 +1,10 @@
-import { FragranceData, toFragranceData } from './fragrance.model';
+import { FragranceData, toFragranceData, withLine } from './fragrance.model';
 
 // JSON backup file: the whole list plus enough metadata to evolve the format later.
 
 const BACKUP_APP = 'fragrance-collection';
-const BACKUP_VERSION = 1;
+/** 2 added `line` to items; version 1 files are still read. */
+const BACKUP_VERSION = 2;
 
 interface Backup {
   app: typeof BACKUP_APP;
@@ -21,7 +22,12 @@ export function createBackup(items: readonly FragranceData[], now: Date = new Da
     app: BACKUP_APP,
     version: BACKUP_VERSION,
     exportedAt: now.toISOString(),
-    items: items.map(({ name, status, grandmaStatus }) => ({ name, status, grandmaStatus })),
+    items: items.map(({ name, status, grandmaStatus, line }) => ({
+      name,
+      status,
+      grandmaStatus,
+      ...withLine(line),
+    })),
   };
   return JSON.stringify(backup, null, 2);
 }

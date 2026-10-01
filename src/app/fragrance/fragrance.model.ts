@@ -29,6 +29,11 @@ export interface FragranceData {
   name: string;
   status: FragranceStatus;
   grandmaStatus: GrandmaStatus;
+  /**
+   * The line (original and its flankers) this fragrance belongs to, e.g. "Creed Aventus".
+   * Fragrances with the same line, ignoring case, are related. Absent when not in a line.
+   */
+  line?: string;
 }
 
 export interface Fragrance extends FragranceData {
@@ -36,7 +41,19 @@ export interface Fragrance extends FragranceData {
 }
 
 export function createFragrance(data: FragranceData, id: string = crypto.randomUUID()): Fragrance {
-  return { id, name: data.name, status: data.status, grandmaStatus: data.grandmaStatus };
+  return {
+    id,
+    name: data.name,
+    status: data.status,
+    grandmaStatus: data.grandmaStatus,
+    ...withLine(data.line),
+  };
+}
+
+/** `{ line }` for a non-blank line name, `{}` otherwise, so "no line" never leaves an empty key. */
+export function withLine(line: unknown): { line?: string } {
+  const trimmed = typeof line === 'string' ? line.trim() : '';
+  return trimmed ? { line: trimmed } : {};
 }
 
 export function personalStatus(status: FragranceStatus): StatusOption<FragranceStatus> {
@@ -67,6 +84,7 @@ export function toFragranceData(value: unknown): FragranceData | null {
     name,
     status: toFragranceStatus(item['status']),
     grandmaStatus: toGrandmaStatus(item['grandmaStatus']),
+    ...withLine(item['line']),
   };
 }
 
