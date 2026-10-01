@@ -212,6 +212,7 @@
 
 .frag-row__action,
 .frag-row__place,
+.frag-row__line,
 .frag-row__edit,
 .frag-row__delete {
   background: none;
@@ -246,6 +247,7 @@
 }
 
 .frag-row__place,
+.frag-row__line,
 .frag-row__edit,
 .frag-row__delete {
   border: none;
@@ -253,7 +255,8 @@
   font-size: 0.72rem;
 }
 
-.frag-row__place {
+.frag-row__place,
+.frag-row__line {
   opacity: 0.45;
   font-size: 0.7rem;
 
@@ -265,6 +268,10 @@
     opacity: 0.15;
     cursor: not-allowed;
   }
+}
+
+.frag-row__line--active {
+  opacity: 0.9;
 }
 
 .frag-row__edit {

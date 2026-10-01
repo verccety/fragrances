@@ -42,6 +42,7 @@ export class FragranceRow {
   public readonly moveDown = output();
   public readonly remove = output();
   public readonly place = output();
+  public readonly editLine = output();
   public readonly startRename = output();
   public readonly rename = output<string>();
   public readonly cancelRename = output();

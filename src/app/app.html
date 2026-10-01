@@ -129,6 +129,7 @@
           (moveDown)="store.moveBy(entry.item.id, 1)"
           (remove)="store.remove(entry.item.id)"
           (place)="startPlacement(entry.item.id)"
+          (editLine)="editLine(entry.item.id)"
           (startRename)="startRename(entry.item.id)"
           (rename)="rename(entry.item.id, $event)"
           (cancelRename)="cancelRename()"
@@ -170,6 +171,15 @@
       [lastCompared]="comparisons.lastCompared()"
       (finished)="finishRefine($event)"
       (dismissed)="showRefine.set(false)"
+    />
+  }
+
+  @if (lineEditing(); as fragrance) {
+    <app-line-dialog
+      [fragrance]="fragrance"
+      [ranking]="store.items()"
+      (chosen)="setLine(fragrance.id, $event)"
+      (dismissed)="lineEditingId.set(null)"
     />
   }
 

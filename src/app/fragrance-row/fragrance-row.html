@@ -63,6 +63,15 @@
   >
     ⚖️
   </button>
+  <button
+    class="frag-row__line"
+    [class.frag-row__line--active]="!!fragrance().line"
+    [disabled]="locked()"
+    (click)="editLine.emit()"
+    [title]="fragrance().line ? 'Line: ' + fragrance().line : 'Add to a line'"
+  >
+    🔗
+  </button>
   <button class="frag-row__edit" [disabled]="locked()" (click)="beginRename()" title="Rename">
     ✎
   </button>

@@ -1,0 +1,64 @@
+<div class="modal-backdrop" (click)="dismissed.emit()">
+  <div
+    class="modal line-dialog"
+    role="dialog"
+    aria-labelledby="line-title"
+    (click)="$event.stopPropagation()"
+  >
+    <div class="modal__header">
+      <h2 class="modal__title" id="line-title">Line</h2>
+      <button class="modal__close" (click)="dismissed.emit()" aria-label="Close">✕</button>
+    </div>
+
+    <p class="line-dialog__fragrance">{{ fragrance().name }}</p>
+    @if (currentLine(); as line) {
+      <p class="line-dialog__current">
+        In line <strong>{{ line.name }}</strong> with {{ line.members.length - 1 }}
+        {{ line.members.length === 2 ? 'other' : 'others' }}
+        <button class="line-dialog__remove" (click)="chosen.emit(null)">Remove from line</button>
+      </p>
+    }
+
+    <input
+      #lineInput
+      class="line-dialog__input"
+      type="text"
+      placeholder="Search lines or name a new one..."
+      [value]="text()"
+      (input)="text.set($any($event.target).value)"
+      (keydown.enter)="submit()"
+    />
+
+    <ul class="line-dialog__options">
+      @for (line of options(); track line.key) {
+        <li>
+          <button
+            class="line-dialog__option"
+            [class.line-dialog__option--current]="line.key === currentLine()?.key"
+            (click)="chosen.emit(line.name)"
+          >
+            <span class="line-dialog__option-name">{{ line.name }}</span>
+            <span class="line-dialog__option-count">
+              {{ line.members.length }} {{ line.members.length === 1 ? 'fragrance' : 'fragrances' }}
+            </span>
+          </button>
+        </li>
+      }
+    </ul>
+
+    <div class="modal__actions">
+      <button class="btn btn--cancel" (click)="dismissed.emit()">Cancel</button>
+      <button
+        class="btn btn--confirm line-dialog__submit"
+        [disabled]="!text().trim()"
+        (click)="submit()"
+      >
+        @if (exactMatch(); as line) {
+          Use line “{{ line.name }}”
+        } @else {
+          Create line “{{ text().trim() }}”
+        }
+      </button>
+    </div>
+  </div>
+</div>

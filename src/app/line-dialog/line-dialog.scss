@@ -1,0 +1,104 @@
+@use '../../theme' as *;
+
+.line-dialog {
+  font-family: 'DM Sans', sans-serif;
+
+  &__fragrance {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-size: 1.2rem;
+    color: $text;
+    margin-bottom: 6px;
+  }
+
+  &__current {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px 10px;
+    margin-bottom: 14px;
+    font-size: 0.74rem;
+    color: rgba($gold, 0.55);
+
+    strong {
+      color: rgba($gold, 0.9);
+      font-weight: 500;
+    }
+  }
+
+  &__remove {
+    background: none;
+    border: none;
+    color: rgba(220, 140, 140, 0.8);
+    cursor: pointer;
+    font: inherit;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+
+    &:hover {
+      color: rgba(230, 120, 120, 1);
+    }
+  }
+
+  &__input {
+    width: 100%;
+    margin-top: 6px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba($gold, 0.2);
+    border-radius: 6px;
+    padding: 10px 14px;
+    color: $text;
+    font: inherit;
+    font-size: 0.82rem;
+    outline: none;
+
+    &:focus {
+      border-color: rgba($gold, 0.45);
+    }
+
+    &::placeholder {
+      color: rgba($gold, 0.3);
+    }
+  }
+
+  &__options {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    max-height: 240px;
+    margin-top: 10px;
+    overflow-y: auto;
+    list-style: none;
+  }
+
+  &__option {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    gap: 12px;
+    padding: 8px 12px;
+    background: $bg-card;
+    border: 1px solid rgba($gold, 0.1);
+    border-radius: 6px;
+    color: $text-dim;
+    cursor: pointer;
+    font: inherit;
+    font-size: 0.78rem;
+    text-align: left;
+    transition: all 0.15s;
+
+    &:hover {
+      background: rgba($gold, 0.08);
+      border-color: rgba($gold, 0.3);
+    }
+
+    &--current {
+      border-color: rgba($gold, 0.45);
+    }
+  }
+
+  &__option-count {
+    color: rgba($gold, 0.45);
+    font-size: 0.68rem;
+    white-space: nowrap;
+  }
+}

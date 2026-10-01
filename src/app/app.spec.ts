@@ -679,6 +679,104 @@ describe('App', () => {
     });
   });
 
+  describe('lines', () => {
+    const LINED: FragranceData[] = [
+      { name: 'Creed Aventus', status: 'enjoy', grandmaStatus: 'liked', line: 'Creed Aventus' },
+      { name: 'Creed Aventus Absolu', status: 'enjoy', grandmaStatus: 'unknown' },
+      { name: 'Xerjoff Naxos', status: null, grandmaStatus: 'unknown' },
+    ];
+    beforeEach(() => seed(LINED));
+
+    const open = (page: Page, name: string) =>
+      page.click(page.query('.frag-row__line', page.row(name)));
+    const lineInput = (page: Page) => page.query<HTMLInputElement>('.line-dialog__input');
+    const submitText = (page: Page) =>
+      page.query('.line-dialog__submit').textContent!.replace(/\s+/g, ' ').trim();
+    const savedLine = (name: string) =>
+      (JSON.parse(localStorage.getItem(STORAGE_KEY)!) as Fragrance[]).find((f) => f.name === name)
+        ?.line;
+
+    it('starts a new line named after the fragrance', async () => {
+      const page = await render();
+
+      await open(page, 'Xerjoff Naxos');
+
+      expect(lineInput(page).value).toBe('Xerjoff Naxos');
+      expect(document.activeElement).toBe(lineInput(page));
+      expect(submitText(page)).toBe('Create line “Xerjoff Naxos”');
+
+      await page.press(lineInput(page), 'Enter');
+
+      expect(page.exists('.modal')).toBe(false);
+      expect(savedLine('Xerjoff Naxos')).toBe('Xerjoff Naxos');
+      const button = page.query('.frag-row__line', page.row('Xerjoff Naxos'));
+      expect(button.classList.contains('frag-row__line--active')).toBe(true);
+      expect(button.getAttribute('title')).toBe('Line: Xerjoff Naxos');
+    });
+
+    it('offers the existing line a flanker name starts with', async () => {
+      const page = await render();
+
+      await open(page, 'Creed Aventus Absolu');
+
+      const options = page.queryAll('.line-dialog__option');
+      expect(options.map((o) => o.textContent!.replace(/\s+/g, ' ').trim())).toEqual([
+        'Creed Aventus 1 fragrance',
+      ]);
+      await page.click(options[0]);
+
+      expect(savedLine('Creed Aventus Absolu')).toBe('Creed Aventus');
+    });
+
+    it('reuses an existing line typed in a different case', async () => {
+      const page = await render();
+      await open(page, 'Xerjoff Naxos');
+
+      await page.type(lineInput(page), 'creed aventus');
+      expect(submitText(page)).toBe('Use line “Creed Aventus”');
+      await page.press(lineInput(page), 'Enter');
+
+      expect(savedLine('Xerjoff Naxos')).toBe('Creed Aventus');
+    });
+
+    it('shows the current line and takes the fragrance out of it', async () => {
+      seed([LINED[0], { ...LINED[1], line: 'Creed Aventus' }, LINED[2]]);
+      const page = await render();
+      await open(page, 'Creed Aventus');
+
+      expect(page.query('.line-dialog__current').textContent!.replace(/\s+/g, ' ')).toContain(
+        'In line Creed Aventus with 1 other',
+      );
+      await page.click('.line-dialog__remove');
+
+      expect(savedLine('Creed Aventus')).toBeUndefined();
+      expect(savedLine('Creed Aventus Absolu')).toBe('Creed Aventus');
+    });
+
+    it.each([
+      ['Cancel', async (page: Page) => page.click('.modal__actions .btn--cancel')],
+      ['Escape', async (page: Page) => page.press(document, 'Escape')],
+    ])('closes without changes via %s', async (_, close) => {
+      const page = await render();
+      await open(page, 'Xerjoff Naxos');
+      await page.type(lineInput(page), 'Something');
+
+      await close(page);
+
+      expect(page.exists('.modal')).toBe(false);
+      expect(savedLine('Xerjoff Naxos')).toBeUndefined();
+    });
+
+    it('is unavailable while renaming', async () => {
+      const page = await render();
+
+      await page.click(page.query('.frag-row__edit', page.row('Xerjoff Naxos')));
+
+      const buttons = page.queryAll<HTMLButtonElement>('.frag-row__line');
+      expect(buttons.every((b) => b.disabled)).toBe(true);
+    });
+  });
+
   describe('finding a place', () => {
     beforeEach(() => seed(SAMPLE));
 

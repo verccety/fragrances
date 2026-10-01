@@ -18,6 +18,7 @@ import { FragranceRow } from './fragrance-row/fragrance-row';
 import { ImportDialog } from './import-dialog/import-dialog';
 import { PlacementDialog } from './placement-dialog/placement-dialog';
 import { RefineDialog, RefineResult } from './refine-dialog/refine-dialog';
+import { LineDialog } from './line-dialog/line-dialog';
 
 @Component({
   selector: 'app-root',
@@ -29,6 +30,7 @@ import { RefineDialog, RefineResult } from './refine-dialog/refine-dialog';
     ImportDialog,
     PlacementDialog,
     RefineDialog,
+    LineDialog,
   ],
   templateUrl: './app.html',
   styleUrl: './app.scss',
@@ -47,6 +49,7 @@ export class App {
   protected readonly showImport = signal(false);
   protected readonly placingId = signal<string | null>(null);
   protected readonly showRefine = signal(false);
+  protected readonly lineEditingId = signal<string | null>(null);
   protected readonly copied = signal(false);
 
   protected readonly filter = computed(() => ({
@@ -100,6 +103,9 @@ export class App {
   protected readonly isRenaming = computed(() => this.editingId() !== null);
   protected readonly placing = computed(
     () => this.store.items().find((item) => item.id === this.placingId()) ?? null,
+  );
+  protected readonly lineEditing = computed(
+    () => this.store.items().find((item) => item.id === this.lineEditingId()) ?? null,
   );
   /** Drag indexes only match the store when the full list is shown. */
   protected readonly canDrag = computed(() => !this.isFiltering() && !this.isRenaming());
@@ -165,6 +171,15 @@ export class App {
   protected applyPlacement(id: string, index: number): void {
     this.store.moveTo(id, index);
     this.placingId.set(null);
+  }
+
+  protected editLine(id: string): void {
+    if (!this.isRenaming()) { this.lineEditingId.set(id); }
+  }
+
+  protected setLine(id: string, line: string | null): void {
+    this.store.setLine(id, line);
+    this.lineEditingId.set(null);
   }
 
   protected openRefine(): void {
