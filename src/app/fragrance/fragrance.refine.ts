@@ -1,3 +1,5 @@
+import { Random } from './random';
+
 // "Refine ranking": a session of pairwise questions about fragrances that are already ranked.
 // Answers that contradict the ranking move the winner up in a draft order, which is only
 // applied to the real list when the session is confirmed.
@@ -13,8 +15,6 @@ const STALE_POOL = 5;
 /** A confirmation opponent is picked within this many places of the beaten fragrance. */
 const CONFIRM_SPREAD = 2;
 
-/** Returns a number in [0, 1), like Math.random. */
-export type Random = () => number;
 
 /** Last comparison time per fragrance id (ms since epoch). */
 export type ComparisonTimes = Readonly<Record<string, number>>;

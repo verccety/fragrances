@@ -13,7 +13,7 @@
     @if (opponent(); as opponent) {
       <p class="comparison__question">Which do you like more?</p>
       <p class="comparison__progress">
-        Question {{ questionNumber() }} of up to {{ maxQuestions() }}
+        Question {{ questionNumber() }} of ~{{ typicalQuestions() }}
       </p>
 
       <div class="comparison__cards">

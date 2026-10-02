@@ -991,7 +991,7 @@ describe('App', () => {
       expect(text(page, `${placedCard} .comparison-card__caption`)).toBe('#4 · placing');
       expect(opponentName(page)).toBe('Xerjoff Naxos');
       expect(text(page, `${opponentCard} .comparison-card__caption`)).toBe('#2');
-      expect(text(page, '.comparison__progress')).toBe('Question 1 of up to 2');
+      expect(text(page, '.comparison__progress')).toBe('Question 1 of ~2');
     });
 
     it('moves the fragrance to the place found by the answers once applied', async () => {
@@ -1053,12 +1053,12 @@ describe('App', () => {
       await page.click('.placement__back');
 
       expect(opponentName(page)).toBe('Creed Aventus');
-      expect(text(page, '.comparison__progress')).toBe('Question 2 of up to 2');
+      expect(text(page, '.comparison__progress')).toBe('Question 2 of ~2');
 
       await page.click('.placement__back');
 
       expect(opponentName(page)).toBe('Xerjoff Naxos');
-      expect(text(page, '.comparison__progress')).toBe('Question 1 of up to 2');
+      expect(text(page, '.comparison__progress')).toBe('Question 1 of ~2');
     });
 
     it('answers with the arrow keys', async () => {

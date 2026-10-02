@@ -4,9 +4,8 @@ import {
   PlacementAnswer,
   PlacementSearch,
   answerPlacement,
-  maxPlacementQuestions,
-  opponentIndex,
   startPlacement,
+  typicalPlacementQuestions,
 } from '../fragrance/fragrance.placement';
 import { tierChange } from '../fragrance/fragrance.tiers';
 import { ComparisonCard } from '../comparison-card/comparison-card';
@@ -56,12 +55,16 @@ export class PlacementDialog {
     return newRank === null ? null : tierChange(this.currentRank(), newRank);
   });
   protected readonly opponent = computed(() => {
-    if (this.search().result !== null) { return null; }
-    const item = this.others()[opponentIndex(this.search())];
+    const index = this.search().opponent;
+    if (index === null) { return null; }
+    const item = this.others()[index];
     return { item, rank: this.ranking().indexOf(item) + 1 };
   });
   protected readonly questionNumber = computed(() => this.history().length + 1);
-  protected readonly maxQuestions = computed(() => maxPlacementQuestions(this.others().length));
+  /** Shown as "of ~N"; never below the current question, as searches can run a little long. */
+  protected readonly typicalQuestions = computed(() =>
+    Math.max(typicalPlacementQuestions(this.others().length), this.questionNumber()),
+  );
 
   protected answer(answer: PlacementAnswer): void {
     this.history.update((history) => [...history, this.search()]);

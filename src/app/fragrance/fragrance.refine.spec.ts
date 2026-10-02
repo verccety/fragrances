@@ -1,13 +1,13 @@
 import {
   FAR_DISTANCE,
   NEAR_DISTANCE,
-  Random,
   RefineAnswer,
   RefineSession,
   answerRefine,
   refineMoves,
   startRefine,
 } from './fragrance.refine';
+import { Random } from './random';
 
 const ids = (count: number) => Array.from({ length: count }, (_, i) => `f${i + 1}`);
 const always = (value: number): Random => () => value;
