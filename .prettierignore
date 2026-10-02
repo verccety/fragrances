@@ -1,7 +1,0 @@
-node_modules/
-dist/
-out-tsc/
-.angular/
-coverage/
-.cache/
-package-lock.json
