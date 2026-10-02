@@ -169,6 +169,19 @@ body {
     justify-content: flex-end;
     gap: 10px;
     margin-top: 20px;
+
+    // Buttons don't wrap (.btn), so a long confirm label must shrink with an ellipsis
+    // instead of pushing the other buttons out of the dialog.
+    > .btn {
+      flex-shrink: 0;
+    }
+
+    > .btn--confirm {
+      flex-shrink: 1;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
   }
 }
 

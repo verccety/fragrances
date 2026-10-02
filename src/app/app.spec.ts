@@ -703,7 +703,10 @@ describe('App', () => {
 
       expect(lineInput(page).value).toBe('Xerjoff Naxos');
       expect(document.activeElement).toBe(lineInput(page));
-      expect(submitText(page)).toBe('Create line “Xerjoff Naxos”');
+      expect(submitText(page)).toBe('Create line');
+      expect(page.query('.line-dialog__submit').getAttribute('title')).toBe(
+        'Create the line “Xerjoff Naxos”',
+      );
 
       await page.press(lineInput(page), 'Enter');
 

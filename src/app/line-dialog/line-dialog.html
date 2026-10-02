@@ -51,12 +51,13 @@
       <button
         class="btn btn--confirm line-dialog__submit"
         [disabled]="!text().trim()"
+        [title]="exactMatch() ? '' : 'Create the line “' + text().trim() + '”'"
         (click)="submit()"
       >
         @if (exactMatch(); as line) {
           Use line “{{ line.name }}”
         } @else {
-          Create line “{{ text().trim() }}”
+          Create line
         }
       </button>
     </div>
